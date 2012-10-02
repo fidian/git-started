@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ ! -f composer.json ]; then
+	exit
+fi
+
+echo_prompt "composer:  "
+
+if ! test_for_program composer; then
+	echo "Not found - you need to install composer"
+else
+	composer install > /dev/null 2>&1
+	
+	if [ $? -ne 0 ]; then
+		echo "Error running 'composer install'"
+	else
+		echo "Ok"
+	fi
+fi
+

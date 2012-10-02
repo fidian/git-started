@@ -1,0 +1,2 @@
+Bare Repository
+---------------

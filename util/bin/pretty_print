@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"/../..
+. util/bin/bare_repo_setup
+

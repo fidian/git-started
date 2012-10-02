@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ ! -f package.json ]; then
+	exit
+fi
+
+echo_prompt "npm:  "
+
+if ! test_for_program npm; then
+	echo "Not found - you need to install npm"
+else
+	npm install > /dev/null 2>&1
+	
+	if [ $? -ne 0 ]; then
+		echo "Error running 'npm install'"
+	else
+		echo "Ok"
+	fi
+fi
+

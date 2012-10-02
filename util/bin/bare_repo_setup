@@ -1,0 +1,52 @@
+# This script is intended to be sourced when the current
+# directory is the top level directory of the repository.
+
+# Directories to ignore for ctags, etags, pretty printing, lint checking
+IGNORE_DIRS="3rd_party vendor"
+
+# Provide the ability to override the above config with your own values
+if [ -f util/config ]; then
+	. util/config
+fi
+
+# Echo a prompt without a newline
+function echo_prompt() {
+	/bin/echo -n ${1+"$@"}
+}
+
+# Run all scripts in the given subdirectory, like the run-parts command.
+# Exit on error
+function run_all_scripts() {
+	for FN in "$1"/*; do
+		# Run in subshell so we preserve environment
+		(
+			. "$FN"
+		)
+
+		# Stop if any script reported an error
+		if [ $? -ne 0 ]; then
+			exit
+		fi
+	done
+}
+
+# Attempt to see if a program is in the path and if it can be used.
+# Returns true if the program is available.
+function test_for_program() {
+	local RESULT
+	RESULT="$(which "$1" 2>&1)"
+
+	if [ $? -ne 0 ]; then
+		false
+	else
+		if [ -z "$RESULT" ]; then
+			false
+		else
+			if [ ! -f "$RESULT" ]; then
+				false
+			else
+				true
+			fi
+		fi
+	fi
+}

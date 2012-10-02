@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cd "$(dirname "$0")"/../..
+. util/bin/bare_repo_setup
+
+if [ "$UID" != "$(stat -c %u .git/)" ]; then
+	echo "ERROR!"
+	echo "You need to be the same user as the owner of the .git directory."
+	echo "If you are using sudo, you shouldn't.  Become $(stat -c %U .git/)"
+	exit 1
+fi
+
+run_all_scripts util/setup.d

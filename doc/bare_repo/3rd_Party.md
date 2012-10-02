@@ -1,0 +1,3 @@
+The purpose of the `3rd_party/` directory is to house external libraries that are used by your software, but should not be pretty printed nor lint checked.  It will be the home of code that is not held to the high standards that is enforced by the quality checks automatically enabled by all commits to the repository.
+
+This differs from the `vendor/` and `node_modules/` folders because those use tools to automatically install libraries for you.  Those directories are never committed to the repository, where as `3rd_party/` is a part of the repository.

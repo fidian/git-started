@@ -1,0 +1,4 @@
+#!/bin/bash
+
+. util/bin/bare_repo_setup
+run_all_scripts util/git/post-checkout.d/
