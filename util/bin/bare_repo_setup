@@ -2,51 +2,136 @@
 # directory is the top level directory of the repository.
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking
-IGNORE_DIRS="3rd_party vendor"
+# Include trailing slash
+IGNORE_DIRS="3rd_party/ vendor/"
 
 # Provide the ability to override the above config with your own values
 if [ -f util/config ]; then
 	. util/config
 fi
 
+# Clear the current line
+function echo_clear_line() {
+	echo_escape "\r\e[K"
+}
+
+# Echo a string and support backslash escapes.  Also avoid newlines.
+function echo_escape() {
+	/bin/echo -en ${1+"$@"}
+}
+
 # Echo a prompt without a newline
 function echo_prompt() {
 	/bin/echo -n ${1+"$@"}
 }
 
+# Get the extension of a filename
+# Needs to work with "file.txt" and return "txt", "no_extension" returns ""
+# and "some.dir.name/some/path.name.here" shows "here"
+function file_extension() {
+	echo "$1" | awk -F . '{if (NF>1) {print $NF} else {print ""}}'
+}
+
+# Echos out the file processing "submodule" or the file type for the given
+# incoming file
+function get_file_type() {
+	local TYPE
+	TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
+	
+	if [ -z "$TYPE" ]; then
+		# Failed to detect the type
+		echo "unknown"
+		return 1
+	fi
+
+	echo "$TYPE"
+	return 0;
+}
+
 # Run all scripts in the given subdirectory, like the run-parts command.
 # Exit on error
+# Parameters:  DirectoryOfScripts ArgsToPassToScripts
 function run_all_scripts() {
-	for FN in "$1"/*; do
-		# Run in subshell so we preserve environment
+	local RESULT
+	local DIR
+	DIR="$1"
+	shift
+
+	if [ ! -d "$DIR" ]; then
+		# No directory, thus no scripts to run, thus success!
+		return 0
+	fi
+
+	for FN in "$DIR"/*; do
+		# Run in subshell so we preserve environment.  Keep current environment
+		# variables around for things like the pre-commit hook.
 		(
-			. "$FN"
+			. "$FN" ${1+"$@"}
 		)
 
 		# Stop if any script reported an error
-		if [ $? -ne 0 ]; then
-			exit
+		RESULT=$?
+
+		if [ $RESULT -ne 0 ]; then
+			return $RESULT
 		fi
 	done
+
+	return 0
+}
+
+# Returns information about a file as a string
+# Result:  MD5 SizeInBytes UserName:GroupName AccessMode FileType
+function stat_file() {
+	local FN
+	FN="$1"
+	md5sum "$FN" | cut -b 1-32 | tr -d "\n"
+	/usr/bin/stat --format="%s %U:%G %A %F" "$FN"
+}
+
+# Create a temporary file and echo out the name
+function temporary_file() {
+	if test_for_program mktemp; then
+		mktemp
+		return 0
+	fi
+	
+	if test_for_program gmktemp; then
+		gmktemp
+		return 0
+	fi
+
+	if test_for_program tempfile; then
+		tempfile
+		return 0
+	fi
+
+	FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
+
+	while [ -f $FN ]; do
+		FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
+	done
+
+	touch $FN
+	echo $FN
 }
 
 # Attempt to see if a program is in the path and if it can be used.
 # Returns true if the program is available.
 function test_for_program() {
-	local RESULT
-	RESULT="$(which "$1" 2>&1)"
+	local WHICH
+	WHICH="$(which "$1" 2>&1)"
 
-	if [ $? -ne 0 ]; then
-		false
-	else
-		if [ -z "$RESULT" ]; then
-			false
-		else
-			if [ ! -f "$RESULT" ]; then
-				false
-			else
-				true
+	# No error code
+	if [ $? -eq 0 ]; then
+		# A string was reported back
+		if [ ! -z "$WHICH" ]; then
+			# That string is a real filename
+			if [ -f "$WHICH" ]; then
+				return true
 			fi
 		fi
 	fi
+
+	return false
 }

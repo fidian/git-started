@@ -1,0 +1,28 @@
+#!/bin/bash
+
+EXT="$(file_extension "$1" | tr "A-Z" "a-z")"
+
+case "$EXT" in
+	css)
+		echo "css"
+		;;
+
+	js)
+		echo "js"
+		;;
+
+	htm|html)
+		echo "html"
+		;;
+		
+	php|inc)
+		echo "php"
+		;;
+
+	*)
+		# Exit 0 if we did NOT find anything and need to keep trying
+		exit 0;
+esac
+
+# Exit 1 - we found something and should stop running detection scripts
+exit 1

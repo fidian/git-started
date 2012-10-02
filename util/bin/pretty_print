@@ -2,4 +2,5 @@
 
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
-
+FILE_TYPE="$(get_file_type "$1")"
+run_all_scripts "util/helpers/pretty_print.d/$FILE_TYPE/"

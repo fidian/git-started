@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ ! -f tags ] && [ ! -f TAGS ]; then
+	exit
+fi
+
+echo_prompt "ctags/etags:  "
+
+if ! test_for_program ctags; then
+	echo "Not found - you need to install ctags"
+else
+	echo "Ok - will rebuild tag files during git commands"
+fi
+

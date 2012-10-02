@@ -1,0 +1,18 @@
+#!/bin/bash
+#
+# Make sure the file is structurally valid before committing
+
+if $FILE_DELETED || $FILE_IGNORED; then
+	exit 0
+fi
+
+util/bin/lint_check "$FILE" > /dev/null
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+	echo_clear_line
+	echo ""
+	util/bin/lint_check "$FILE"
+fi
+
+exit $RESULT

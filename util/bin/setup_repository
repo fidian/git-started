@@ -10,4 +10,4 @@ if [ "$UID" != "$(stat -c %u .git/)" ]; then
 	exit 1
 fi
 
-run_all_scripts util/setup.d
+run_all_scripts util/helpers/setup.d

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+cd .git
+TARGET="../utils/git/hooks"
+echo_prompt ".git/hooks:  "
+
+if [ "$(readlink hooks)" != "$TARGET" ]; then
+	rm -rf hooks
+	ln -s "$TARGET" hooks
+	
+	if [ $? -eq 0 ]; then
+		echo "Set up symbolic link"
+	else 
+		echo "Unable to make symbolic link"
+	fi
+else
+	echo "Already done"
+fi
+

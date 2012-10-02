@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+# Clean up indentation, whitespace, etc
+
+if $FILE_DELETED || $FILE_IGNORED; then
+	exit 0
+fi
+
+# Only operate on actual files, not symbolic links
+if [ -L "$FILE" ]; then
+	exit 0
+fi
+
+BEFORE="$(stat_file "$FILE")"
+util/bin/pretty_print "$FILE" > /dev/null
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+	# Errors were detected, pretty printing was not applied
+	# Run the command again and show errors
+	util/bin/pretty_print "$FILE"
+	exit $RESULT
+fi
+
+# No errors detected.  See if file was changed.
+AFTER="$(stat_file "$FILE")"
+
+if [ "$BEFORE" != "$AFTER" ]; then
+	echo_clear_line
+	echo ""
+	echo "Pretty printed: $FILE"
+	echo "You will need to review these changes then add/commit again"
+	echo 1
+fi
+
+exit 0
+

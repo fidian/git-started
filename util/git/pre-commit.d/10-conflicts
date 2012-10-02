@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Avoid conflict markup by searching for seven "=", "<" or ">"
+# in a row, which would comprise the entire line
+
+if $FILE_DELETED || $FILE_IGNORED; then
+	exit 0
+fi
+
+grep -q "^(={7}|<{7}|>{7})$" "$FILE"
+
+if [ $? -eq 0 ]; then
+	echo_clear_line
+	grep -U3 --color=auto "^(={7}|<{7}|>{7})$" "$FILE"
+	echo ""
+	echo "Found conflict markup in file: $FILE"
+	exit 1
+fi
+
+exit 0

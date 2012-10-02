@@ -1,0 +1,22 @@
+#!/bin/bash
+#
+# Do not allow committing if there is a message containing the string
+# "N O C O M M I T" (remove the spaces)
+# The trickier part is having this code search for the special tag and
+# still remain committable!
+
+if $FILE_DELETED || $FILE_IGNORED; then
+	exit 0
+fi
+
+grep -q "N[O]COMMIT" "$FILE"
+
+if [ $? -eq 0 ]; then
+	echo_clear_line
+	grep -U3 --color=auto "N[O]COMMIT" "$FILE"
+	echo ""
+	echo "Found NO""COMMIT in file: $FILE"
+	exit 1
+fi
+
+exit 0

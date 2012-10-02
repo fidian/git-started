@@ -1,4 +1,57 @@
 #!/bin/bash
 
 . util/bin/bare_repo_setup
-run_all_scripts util/git/pre-commit.d/
+
+# Determine the revision we are comparing against
+if git-rev-parse --verify HEAD 1>/dev/null 2>&1; then
+	AGAINST=HEAD
+else
+	# Initial commit: diff against an empty tree object
+	AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+fi
+
+# Stash our changes so we don't accidentally commit something we don't want.
+# This is important for automatic pretty printing where the pretty printed
+# file gets added to the commit again.
+git stash save --keep-index --quiet
+
+# Iterate over each file that is being committed
+ERROR_COUNT=0
+RESULT=0
+
+while read FILE; do
+	# Show we are doing something to a file
+	echo_prompt "$FILE"
+
+	FILE_IGNORED=false
+	FILE_DELETED=true
+
+	# See if the file was deleted
+	if [[ -f "$FILE" && ! -h "$FILE" ]]; then
+		FILE_DELETED=false
+	fi
+
+	for DIR in IGNORE_DIRS; do
+		if [[ "$FILE" = $DIR* ]]; then
+			FILE_IGNORED=true
+		fi
+	done
+
+	run_all_scripts util/git/pre-commit.d/
+
+	if [ $? -ne 0 ]; then
+		ERROR_COUNT=$(( $ERROR_COUNT + 1 ))
+	fi
+
+	# Clear away the current file
+	echo_clear_line
+done < <(git diff-index --name-only --cached $AGAINST)
+
+# Restore our files
+git stash pop --quiet
+
+if [ $ERROR_COUNT -ne 0 ]; then
+	echo ""
+	echo "Correct any errors and commit again."
+	exit 1
+fi
