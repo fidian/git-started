@@ -1,20 +1,4 @@
 #!/bin/bash
 
-cd .git/info
-TARGET="../../util/git/exclude"
-
-echo_prompt ".git/info/exclude:  "
-
-if [ "$(readlink exclude)" != "$TARGET" ]; then
-	rm -rf exclude
-	ln -s "$TARGET" exclude
-	
-	if [ $? -eq 0 ]; then
-		echo "Set up symbolic link"
-	else 
-		echo "Unable to make symbolic link"
-	fi
-else
-	echo "Already done"
-fi
+setup_symlink ".git/info/" "exclude" "../../util/git/exclude"
 
