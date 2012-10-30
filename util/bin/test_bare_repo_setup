@@ -1,0 +1,61 @@
+#!/bin/bash
+# 
+# Ensure things are all correct
+
+cd "$(dirname "$0")"/../..
+. util/bin/bare_repo_setup
+
+ERRORS=0
+WARNINGS=0
+
+function ERROR() {
+	echo "Error:  $1"
+	ERRORS=$(( $ERRORS + 1 ))
+}
+
+function WARNING() {
+	echo "Warning:  $1"
+	WARNINGS=$(( $WARNINGS + 1 ))
+}
+
+
+for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././super.hard/path.to/understand.me:me; do
+	EXPECTED="${FILE##*:}"
+	INPUT="${FILE%:*}"
+	ACTUAL="$(file_extension "$INPUT")"
+
+	if [ "$ACTUAL" != "$EXPECTED" ]; then
+		ERROR "file_extension \"$INPUT\" results in \"$ACTUAL\", not \"$EXPECTED\""
+	fi
+done
+
+for FILE in a.css:css b.js:js c.html:html cc.htm:html d.php:php dd.inc:php e.txt:unknown; do
+	EXPECTED="${FILE##*:}"
+	INPUT="${FILE%:*}"
+	ACTUAL="$(get_file_type "$INPUT")"
+
+	if [ "$ACTUAL" != "$EXPECTED" ]; then
+		ERROR "get_file_type \"$INPUT\" results in \"$ACTUAL\", not \"$EXPECTED\""
+	fi
+done
+
+FN="$(temporary_file)"
+if [ -z "$FN" ]; then
+	ERROR "temporary_file did not return a filename"
+elif [ ! -f "$FN" ]; then
+	ERROR "temporary_file returned \"$FN\" but did not create the file"
+else
+	rm "$FN"
+fi
+
+if test_for_program totally_unexpected_and_invalid_program_we_hope; then
+	ERROR "test_for_program is wrongly detecting a program that does not exist"
+fi
+if ! test_for_program ls; then
+	ERROR "test_for_program can not detect the presence of \"ls\""
+fi
+
+echo "Tests complete"
+echo ""
+echo "Warnings: $WARNINGS"
+echo "Errors: $ERRORS"
