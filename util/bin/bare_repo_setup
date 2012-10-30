@@ -128,10 +128,10 @@ function test_for_program() {
 		if [ ! -z "$WHICH" ]; then
 			# That string is a real filename
 			if [ -f "$WHICH" ]; then
-				return true
+				return 0
 			fi
 		fi
 	fi
 
-	return false
+	return 1
 }
