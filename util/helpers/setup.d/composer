@@ -6,15 +6,24 @@ fi
 
 echo_prompt "composer:  "
 
-if ! test_for_program composer; then
-	echo "Not found - you need to install composer"
+if [ ! -d vendor/ ]; then
+	mkdir vendor
+fi
+
+if [ ! -f vendor/composer.phar ]; then
+	curl -s https://getcomposer.org/installer | php -- --quiet --install-dir=vendor
+	echo "Installed"
 else
-	composer install > /dev/null 2>&1
+	echo "Ok"
+fi
+
+echo_prompt "composer install:  "
+
+php vendor/composer.phar install > /dev/null 2>&1
 	
-	if [ $? -ne 0 ]; then
-		echo "Error running 'composer install'"
-	else
-		echo "Ok"
-	fi
+if [ $? -ne 0 ]; then
+	echo "Error running 'composer install'"
+else
+	echo "Ok"
 fi
 
