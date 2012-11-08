@@ -46,7 +46,10 @@ TAGS
 !TAGS/
 
 # Node modules - packages installed by npm
-node_modules/
+/node_modules/
+
+# Extra stuff, like composer, added for you and should not be committed
+/vendor/
 
 # Custom location for local files
 /local
