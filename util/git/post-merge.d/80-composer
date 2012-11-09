@@ -1,5 +1,5 @@
 #!/bin/bash
 
 if [ -f composer.json ]; then
-	php vendor/composer.phar update
+	php vendor/composer.phar install
 fi
