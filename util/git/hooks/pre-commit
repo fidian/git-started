@@ -10,11 +10,6 @@ else
 	AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
 
-# Stash our changes so we don't accidentally commit something we don't want.
-# This is important for automatic pretty printing where the pretty printed
-# file gets added to the commit again.
-git stash save --keep-index --quiet
-
 # Iterate over each file that is being committed
 ERROR_COUNT=0
 RESULT=0
@@ -46,9 +41,6 @@ while read FILE; do
 	# Clear away the current file
 	echo_clear_line
 done < <(git diff-index --name-only --cached $AGAINST)
-
-# Restore our files
-git stash pop --quiet
 
 if [ $ERROR_COUNT -ne 0 ]; then
 	echo ""
