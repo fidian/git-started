@@ -11,26 +11,32 @@ if [ -L "$FILE" ]; then
 	exit 0
 fi
 
-BEFORE="$(stat_file "$FILE")"
-util/bin/pretty_print "$FILE" > /dev/null
+TEMPFILE="$(temporary_file)"
+cp -p "$FILE" "$TEMPFILE"
+BEFORE="$(stat_file "$TEMPFILE")"
+util/bin/pretty_print "$TEMPFILE" > /dev/null
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then
 	# Errors were detected, pretty printing was not applied
-	# Run the command again and show errors
+	# Run the command again on the real file and show errors
 	util/bin/pretty_print "$FILE"
 	exit $RESULT
 fi
 
 # No errors detected.  See if file was changed.
-AFTER="$(stat_file "$FILE")"
+AFTER="$(stat_file "$TEMPFILE")"
 
 if [ "$BEFORE" != "$AFTER" ]; then
+	cp -p "$TEMPFILE" "$FILE"
 	echo_clear_line
 	echo ""
 	echo "Pretty printed: $FILE"
 	echo "You will need to review these changes then add/commit again"
 	echo 1
+else
+	# Cleanup
+	rm "$TEMPFILE"
 fi
 
 exit 0
