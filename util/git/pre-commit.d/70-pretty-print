@@ -14,14 +14,14 @@ fi
 TEMPFILE="$(temporary_file)"
 cp -p "$FILE" "$TEMPFILE"
 BEFORE="$(stat_file "$TEMPFILE")"
-util/bin/pretty_print "$TEMPFILE" > /dev/null
+util/bin/pretty_print "$TEMPFILE" "$FILE"
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then
-	# Errors were detected, pretty printing was not applied
-	# Run the command again on the real file and show errors
-	util/bin/pretty_print "$FILE"
-	exit $RESULT
+	echo_clear_line
+	echo ""
+	echo_escape "${COLOR_PRETTY_ERROR}Error detected during pretty printing${COLOR_RESET}"
+	exit 1
 fi
 
 # No errors detected.  See if file was changed.
@@ -31,9 +31,9 @@ if [ "$BEFORE" != "$AFTER" ]; then
 	cp -p "$TEMPFILE" "$FILE"
 	echo_clear_line
 	echo ""
-	echo "Pretty printed: $FILE"
-	echo "You will need to review these changes then add/commit again"
-	echo 1
+	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printed:${COLOR_RESET}  ${COLOR_PRETTY_FILE}$FILE${COLOR_RESET}"
+	echo "Review these changes then add/commit again"
+	exit 1
 else
 	# Cleanup
 	rm "$TEMPFILE"
