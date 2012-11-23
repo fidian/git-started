@@ -1,0 +1,11 @@
+#!/bin/bash
+
+FILE="$1"
+
+if test_for_program php; then
+	php -l "$FILE" > /dev/null 2>&1
+
+	if [ $? -ne 0 ]; then
+		php -l -d error_reporting=E_ALL -d display_errors=0 "$FILE"
+	fi
+fi
