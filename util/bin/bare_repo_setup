@@ -53,6 +53,26 @@ function file_extension() {
 	echo "${FN:${#BASE}+1}"
 }
 
+# Resolve paths to a directory
+# Echos the result with quotes
+# Usage:  OLD_DIR="$(pwd)"
+#         cd "$(dirname "$0")"/../..
+#         . util/bin/bare_repo_setup
+#         FILES="$(resolve_paths "$OLD_DIR" ${1+"$@"})"
+# ParameterS:  DirectoryFromWhence FilenameOrPath
+function resolve_path() {
+	local WHENCE
+	local FILE
+	WHENCE="$1"
+	FILE="$2"
+
+	if [ "${FILE:0:1}" == "/" ]; then
+		echo "$FILE"
+	else
+		echo "${WHENCE}/${FILE}"
+	fi
+}
+
 # Run all scripts in the given subdirectory, like the run-parts command.
 # Exit on error
 # Parameters:  DirectoryOfScripts ArgsToPassToScripts
