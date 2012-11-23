@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	test_for_program jslint
+else
+	FILE="$1"
+
+	jslint $LINT_JS_JSLINT_OPTIONS "$FILE" > /dev/null 2>&1
+
+	if [ $? -ne 0 ]; then
+		lint_error "$FILE"
+		jslint $LINT_JS_JSLINT_OPTIONS "$FILE" 2>&1
+	fi
+fi

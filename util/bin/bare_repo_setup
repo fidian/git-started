@@ -3,7 +3,33 @@
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking
 # Include trailing slash
-IGNORE_DIRS="3rd_party/ vendor/"
+IGNORE_DIRS="3rd_party/ node_modules/ vendor/"
+
+# Show messages in pretty colors.  Change or remove colors here.
+COLOR_LINT_ERROR="\e[1;31m" # Bright red
+COLOR_LINT_FILENAME="\e[1;33m" # Bright yellow
+COLOR_PRETTY_FILENAME="\e[1;33m" # Bright yellow
+COLOR_PRETTY_MESSAGE="\e[32m" # Green
+COLOR_RESET="\e[m" # Reset
+
+# Lint and pretty printer programs to use, by language.
+# The list is a series of programs that are tried (see util/helpers/lint.d
+# and util/helpers/pretty_print.d) in order until one script detects
+# an available program and then it is used for the task.
+# To run programs XX, then falling back to YY when XX is not available, use
+# LINT_LANG="XX YY"
+# To run XX and also run YY if both are available, falling back to XX
+# and then falling back further to YY, use
+# LINT_LANG="XX+YY XX YY"
+# To completely disable
+# LINT_LANG=""
+LINT_JS="jslint jsl"
+LINT_PHP="cli"
+
+# Lint command-line options for various language/program pairs
+LINT_JS_JSL_OPTIONS="-nologo -nofilelisting -nosummary -process"
+LINT_JS_JSLINT_OPTIONS=""
+LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
 
 # Provide the ability to override the above config with your own values
 if [ -f util/config ]; then
@@ -12,24 +38,23 @@ fi
 
 # Clear the current line
 function echo_clear_line() {
-	echo_escape "\r\e[K"
+	printf "\e[G\e[K"
 }
 
-# Echo a string and support backslash escapes.  Also avoid newlines.
-function echo_escape() {
-	/bin/echo -en ${1+"$@"}
+# Allow escape codes
+function echo_escape {
+	printf "%b\n" "$1"
 }
 
 # Echo a prompt without a newline
 function echo_prompt() {
-	/bin/echo -n ${1+"$@"}
+	printf "%s" "$1"
 }
 
 # Echos out the file processing "submodule" or the file type for the given
 # incoming file
 function get_file_type() {
-	local TYPE
-	TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
+	local TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
 	
 	if [ -z "$TYPE" ]; then
 		# Failed to detect the type
@@ -46,10 +71,8 @@ function get_file_type() {
 # and "some.dir.name/some/path.name.here" shows "here"
 # This does not use subshells
 function file_extension() {
-	local FN
-	local BASE
-	FN="${1##*/}" # Remove path, which might have periods
-	BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
+	local FN="${1##*/}" # Remove path, which might have periods
+	local BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
 	echo "${FN:${#BASE}+1}"
 }
 
@@ -61,10 +84,8 @@ function file_extension() {
 #         FILES="$(resolve_paths "$OLD_DIR" ${1+"$@"})"
 # ParameterS:  DirectoryFromWhence FilenameOrPath
 function resolve_path() {
-	local WHENCE
-	local FILE
-	WHENCE="$1"
-	FILE="$2"
+	local WHENCE="$1" # Directory that we use for resolution
+	local FILE="$2" # Relative or absolute file/path
 
 	if [ "${FILE:0:1}" == "/" ]; then
 		echo "$FILE"
@@ -78,8 +99,7 @@ function resolve_path() {
 # Parameters:  DirectoryOfScripts ArgsToPassToScripts
 function run_all_scripts() {
 	local RESULT
-	local DIR
-	DIR="$1"
+	local DIR="$1"
 	shift
 
 	if [ ! -d "$DIR" ]; then
@@ -105,11 +125,71 @@ function run_all_scripts() {
 	return 0
 }
 
+# Run all helper scripts that match the settings
+# Parameters: VariablePrefix HelperDirectoryBase Filename
+function run_helpers() {
+	local PREFIX="$1" # Prefix for variable to use for programs
+	local HELPER_DIR="$2" # Name of directory in helpers.d
+	local FILE="$3" # Filename to check or run against
+	local FILE_TYPE="$(get_file_type "$FILE")"
+	local CONFIGS="${PREFIX}_${FILE_TYPE^^}"
+	eval "CONFIGS=\$$CONFIGS"
+	local CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS RESULT
+
+	HELPER_DIR="util/helpers/${HELPER_DIR}/${FILE_TYPE}"
+
+	if [ ! -d "${HELPER_DIR}" ]; then
+		# No scripts, thus nothing happens.  Don't report an error
+		return 0
+	fi
+
+	if [ -z "$CONFIGS" ]; then
+		# No configuration - skip validation
+		return 0
+	fi
+
+	# Find a configuration that works
+	for CONFIG in $CONFIGS; do
+		CONFIG_COMMANDS="${CONFIG//+/ /}"
+		MISSING_COMMANDS=""
+		for COMMAND in $CONFIG_COMMANDS; do
+			COMMAND="${HELPER_DIR}/${COMMAND}"
+			if [ ! -f "$COMMAND" ]; then
+				MISSING_COMMANDS="$COMMAND"
+			fi
+		done
+		if [ -z "$MISSING_COMMANDS" ]; then
+			# We have every component - run the linters
+			for COMMAND in $CONFIG_COMMANDS; do
+				COMMAND="${HELPER_DIR}/${COMMAND}"
+
+				# Run in subshell so we preserve environment.
+				(
+					. "$COMMAND" "$FILE"
+				)
+
+				# Stop if any script reported an error
+				RESULT=$?
+
+				if [ $RESULT -ne 0 ]; then
+					return $RESULT
+				fi
+			done
+
+			# Pass
+			return 0
+		fi
+	done
+
+	# No matches
+	return 0
+}
+
+
 # Returns information about a file as a string
 # Result:  MD5 SizeInBytes UserName:GroupName AccessMode FileType
 function stat_file() {
-	local FN
-	FN="$1"
+	local FN="$1"
 	md5sum "$FN" | cut -b 1-32 | tr -d "\n"
 	/usr/bin/stat --format="%s %U:%G %A %F" "$FN"
 }
@@ -144,8 +224,7 @@ function temporary_file() {
 # Attempt to see if a program is in the path and if it can be used.
 # Returns true if the program is available.
 function test_for_program() {
-	local WHICH
-	WHICH="$(which "$1" 2>&1)"
+	local WHICH="$(which "$1" 2>&1)"
 
 	# No error code
 	if [ $? -eq 0 ]; then

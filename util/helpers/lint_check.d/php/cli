@@ -1,11 +1,14 @@
 #!/bin/bash
 
-FILE="$1"
+if [ -z "$1" ]; then
+	test_for_program php
+else 
+	FILE="$1"
 
-if test_for_program php; then
-	php -l "$FILE" > /dev/null 2>&1
+	php -l $LINT_PHP_CLI_OPTIONS "$FILE" > /dev/null 2>&1
 
 	if [ $? -ne 0 ]; then
-		php -l -d error_reporting=E_ALL -d display_errors=0 "$FILE"
+		lint_error "$FILE"
+		php -l $LINT_PHP_CLI_OPTIONS "$FILE" 2>&1
 	fi
 fi

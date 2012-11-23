@@ -1,8 +1,14 @@
 #!/bin/bash
 
+function lint_error() {
+	local FILE="$1"
+
+	echo_clear_line
+	echo_escape "${COLOR_LINT_ERROR}Lint error:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$FILE${COLOR_RESET}"
+}
+
 OLD_DIR="$(pwd)"
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
 FILE="$(resolve_path "$OLD_DIR" ${1+"$@"})"
-FILE_TYPE="$(get_file_type "$FILE")"
-run_all_scripts "util/helpers/lint_check.d/$FILE_TYPE/" "$FILE"
+run_helpers "LINT" "lint_check.d" "$1"
