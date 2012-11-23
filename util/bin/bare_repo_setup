@@ -25,18 +25,6 @@ function echo_prompt() {
 	/bin/echo -n ${1+"$@"}
 }
 
-# Get the extension of a filename
-# Needs to work with "file.txt" and return "txt", "no_extension" returns ""
-# and "some.dir.name/some/path.name.here" shows "here"
-# This does not use subshells
-function file_extension() {
-	local FN
-	local BASE
-	FN="${1##*/}" # Remove path, which might have periods
-	BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
-	echo "${FN:${#BASE}+1}"
-}
-
 # Echos out the file processing "submodule" or the file type for the given
 # incoming file
 function get_file_type() {
@@ -51,6 +39,18 @@ function get_file_type() {
 
 	echo "$TYPE"
 	return 0;
+}
+
+# Get the extension of a filename
+# Needs to work with "file.txt" and return "txt", "no_extension" returns ""
+# and "some.dir.name/some/path.name.here" shows "here"
+# This does not use subshells
+function file_extension() {
+	local FN
+	local BASE
+	FN="${1##*/}" # Remove path, which might have periods
+	BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
+	echo "${FN:${#BASE}+1}"
 }
 
 # Run all scripts in the given subdirectory, like the run-parts command.
