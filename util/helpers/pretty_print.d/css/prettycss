@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	test_for_program prettycss
+else 
+	local FILE="$1"
+	local TEMP="$(temporary_file)"
+
+	prettycss $PRETTY_CSS_PRETTYCSS_OPTIONS "$FILE" > "$TEMP" 2>&1
+
+	if [ $? -ne 0 ]; then
+		pretty_error "$TARGET"
+		prettycss $PRETTY_CSS_PRETTYCSS_OPTIONS "$FILE" 2>&1
+	else
+		mv "$TEMP" "$FILE"
+	fi
+fi

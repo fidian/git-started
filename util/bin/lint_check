@@ -7,8 +7,9 @@ function lint_error() {
 	echo_escape "${COLOR_LINT_ERROR}Lint error:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$FILE${COLOR_RESET}"
 }
 
+FILE="$1"
 OLD_DIR="$(pwd)"
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
-FILE="$(resolve_path "$OLD_DIR" ${1+"$@"})"
-run_helpers "LINT" "lint_check.d" "$1"
+FILE="$(resolve_path "$OLD_DIR" "$FILE")"
+run_helpers "LINT" "lint_check.d" "$FILE"

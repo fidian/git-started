@@ -3,7 +3,7 @@
 if [ -z "$1" ]; then
 	test_for_program php
 else 
-	FILE="$1"
+	local FILE="$1"
 
 	php -l $LINT_PHP_CLI_OPTIONS "$FILE" > /dev/null 2>&1
 

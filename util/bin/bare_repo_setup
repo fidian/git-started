@@ -1,6 +1,10 @@
 # This script is intended to be sourced when the current
 # directory is the top level directory of the repository.
 
+# Debugging mode - lots of useful debug information gets shown
+# when you change this to 1
+DEBUG=0
+
 # Directories to ignore for ctags, etags, pretty printing, lint checking
 # Include trailing slash
 IGNORE_DIRS="3rd_party/ node_modules/ vendor/"
@@ -8,6 +12,7 @@ IGNORE_DIRS="3rd_party/ node_modules/ vendor/"
 # Show messages in pretty colors.  Change or remove colors here.
 COLOR_LINT_ERROR="\e[1;31m" # Bright red
 COLOR_LINT_FILENAME="\e[1;33m" # Bright yellow
+COLOR_PRETTY_ERROR="\e[1;31m" # Bright red
 COLOR_PRETTY_FILENAME="\e[1;33m" # Bright yellow
 COLOR_PRETTY_MESSAGE="\e[32m" # Green
 COLOR_RESET="\e[m" # Reset
@@ -23,18 +28,33 @@ COLOR_RESET="\e[m" # Reset
 # LINT_LANG="XX+YY XX YY"
 # To completely disable
 # LINT_LANG=""
+LINT_CSS="prettycss"
 LINT_JS="jslint jsl"
 LINT_PHP="cli"
 
+# Same goes for the pretty printers
+PRETTY_CSS="prettycss"
+
 # Lint command-line options for various language/program pairs
+LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
 LINT_JS_JSL_OPTIONS="-nologo -nofilelisting -nosummary -process"
 LINT_JS_JSLINT_OPTIONS=""
 LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
+
+# Pretty printing command-line options
+PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
 
 # Provide the ability to override the above config with your own values
 if [ -f util/config ]; then
 	. util/config
 fi
+
+# Write out a debug message to stderr if debug mode enabled
+function debug() {
+	if [ "$DEBUG" -ne 0 ]; then
+		echo ${1+"$@"} > /dev/stderr
+	fi
+}
 
 # Clear the current line
 function echo_clear_line() {
@@ -55,9 +75,11 @@ function echo_prompt() {
 # incoming file
 function get_file_type() {
 	local TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
+	debug "get_file_type result '$TYPE'"
 	
 	if [ -z "$TYPE" ]; then
 		# Failed to detect the type
+		debug "get_file_type returning 'unknown'"
 		echo "unknown"
 		return 1
 	fi
@@ -73,7 +95,9 @@ function get_file_type() {
 function file_extension() {
 	local FN="${1##*/}" # Remove path, which might have periods
 	local BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
-	echo "${FN:${#BASE}+1}"
+	local EXTENSION="${FN:${#BASE}+1}"
+	debug "file_extension '$1' is '$EXTENSION'"
+	echo "$EXTENSION"
 }
 
 # Resolve paths to a directory
@@ -86,12 +110,14 @@ function file_extension() {
 function resolve_path() {
 	local WHENCE="$1" # Directory that we use for resolution
 	local FILE="$2" # Relative or absolute file/path
+	local RESULT="$FILE" # Our end result
 
-	if [ "${FILE:0:1}" == "/" ]; then
-		echo "$FILE"
-	else
-		echo "${WHENCE}/${FILE}"
+	if [ "${FILE:0:1}" != "/" ]; then
+		RESULT="${WHENCE}/${FILE}"
 	fi
+
+	debug "resolve_path '$WHENCE' '$FILE' becomes '$RESULT'"
+	echo "$RESULT"
 }
 
 # Run all scripts in the given subdirectory, like the run-parts command.
@@ -103,11 +129,13 @@ function run_all_scripts() {
 	shift
 
 	if [ ! -d "$DIR" ]; then
+		debug "run_all_scripts '$DIR' no scripts to run"
 		# No directory, thus no scripts to run, thus success!
 		return 0
 	fi
 
 	for FN in "$DIR"/*; do
+		debug "run_all_scripts '$DIR' '$FN'"
 		# Run in subshell so we preserve environment.  Keep current environment
 		# variables around for things like the pre-commit hook.
 		(
@@ -118,33 +146,50 @@ function run_all_scripts() {
 		RESULT=$?
 
 		if [ $RESULT -ne 0 ]; then
+			debug "run_all_scripts result $RESULT"
 			return $RESULT
 		fi
 	done
 
+	debug "run_all_scripts all passed"
 	return 0
 }
 
 # Run all helper scripts that match the settings
-# Parameters: VariablePrefix HelperDirectoryBase Filename
+#
+# VariablePrefix is used for determining what settings to use
+# HelperDirectory is the name of the directory in util/helpers for scripts
+# Filename is the actual filename to work upon
+# TargetFile is the filename in the repo or an empty string, in case we
+#   copied TargetFile to a temporary file (passed in as parameter 3)
+#
+# Parameters: VariablePrefix HelperDirectory Filename TargetFile
 function run_helpers() {
 	local PREFIX="$1" # Prefix for variable to use for programs
 	local HELPER_DIR="$2" # Name of directory in helpers.d
 	local FILE="$3" # Filename to check or run against
-	local FILE_TYPE="$(get_file_type "$FILE")"
-	local CONFIGS="${PREFIX}_${FILE_TYPE^^}"
-	eval "CONFIGS=\$$CONFIGS"
-	local CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS RESULT
+	local TARGET="$4" # Actual filename before it was made into a working copy
 
+	if [ -z "$TARGET" ]; then
+		TARGET="$FILE"
+	fi
+
+	local FILE_TYPE="$(get_file_type "$TARGET")"
+	local CONFIGS_VAR_NAME="${PREFIX}_${FILE_TYPE^^}"
+	local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS RESULT FULL_COMMAND
+	eval "CONFIGS=\$$CONFIGS_VAR_NAME"
 	HELPER_DIR="util/helpers/${HELPER_DIR}/${FILE_TYPE}"
+	debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' '$FILE' '$TARGET'"
 
 	if [ ! -d "${HELPER_DIR}" ]; then
 		# No scripts, thus nothing happens.  Don't report an error
+		debug 'run_helpers directory does not exist'
 		return 0
 	fi
 
 	if [ -z "$CONFIGS" ]; then
 		# No configuration - skip validation
+		debug 'run_helpers nothing to try'
 		return 0
 	fi
 
@@ -152,24 +197,43 @@ function run_helpers() {
 	for CONFIG in $CONFIGS; do
 		CONFIG_COMMANDS="${CONFIG//+/ /}"
 		MISSING_COMMANDS=""
+
 		for COMMAND in $CONFIG_COMMANDS; do
-			COMMAND="${HELPER_DIR}/${COMMAND}"
-			if [ ! -f "$COMMAND" ]; then
-				MISSING_COMMANDS="$COMMAND"
+			FULL_COMMAND="${HELPER_DIR}/${COMMAND}"
+
+			if [ ! -f "$FULL_COMMAND" ]; then
+				debug "run_helpers Command does not exist: $COMMAND"
+				MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
+			else
+				# Run in a subshell for safety
+				(
+					. "$FULL_COMMAND" ""
+				)
+
+				RESULT=$?
+
+				if [ $RESULT -ne 0 ]; then
+					debug "run_helpers Command reported failure: $COMMAND"
+					MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
+				fi
 			fi
 		done
+
+		debug "run_helpers '$CONFIG' failures: $MISSING_COMMANDS"
+
 		if [ -z "$MISSING_COMMANDS" ]; then
 			# We have every component - run the linters
 			for COMMAND in $CONFIG_COMMANDS; do
-				COMMAND="${HELPER_DIR}/${COMMAND}"
+				FULL_COMMAND="${HELPER_DIR}/${COMMAND}"
 
 				# Run in subshell so we preserve environment.
 				(
-					. "$COMMAND" "$FILE"
+					. "$FULL_COMMAND" "$FILE"
 				)
 
 				# Stop if any script reported an error
 				RESULT=$?
+				debug "run_helpers '$CONFIG' '$COMMAND' $RESULT"
 
 				if [ $RESULT -ne 0 ]; then
 					return $RESULT
@@ -177,11 +241,13 @@ function run_helpers() {
 			done
 
 			# Pass
+			debug "run_helpers '$CONFIG' all passed"
 			return 0
 		fi
 	done
 
 	# No matches
+	debug "run_helpers nothing matched"
 	return 0
 }
 
@@ -197,20 +263,24 @@ function stat_file() {
 # Create a temporary file and echo out the name
 function temporary_file() {
 	if test_for_program mktemp; then
+		debug "temporary_file mktemp"
 		mktemp
 		return 0
 	fi
 	
 	if test_for_program gmktemp; then
+		debug "temporary_file gmktemp"
 		gmktemp
 		return 0
 	fi
 
 	if test_for_program tempfile; then
+		debug "temporary_file tempfile"
 		tempfile
 		return 0
 	fi
 
+	debug "temporary_file manual"
 	FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
 
 	while [ -f $FN ]; do
@@ -224,17 +294,25 @@ function temporary_file() {
 # Attempt to see if a program is in the path and if it can be used.
 # Returns true if the program is available.
 function test_for_program() {
+	local RESULT
 	local WHICH="$(which "$1" 2>&1)"
+	RESULT=$?
 
 	# No error code
-	if [ $? -eq 0 ]; then
+	if [ $RESULT -eq 0 ]; then
 		# A string was reported back
 		if [ ! -z "$WHICH" ]; then
 			# That string is a real filename
 			if [ -f "$WHICH" ]; then
 				return 0
+			else
+				debug "test_for_program '$WHICH' file not found"
 			fi
+		else
+			debug "test_for_program '$WHICH' empty string"
 		fi
+	else
+		debug "test_for_program '$WHICH' error code '$RESULT'"
 	fi
 
 	return 1

@@ -1,14 +1,45 @@
 #!/bin/bash
+#
+# In-place pretty printer
+#
+# Syntax:
+#
+#     pretty_print filename
+#     pretty_print temporary_filename actual_filename
+#
+# When you use a temporary file, the file extension may change, which is
+# why the second form is allowed
 
 function pretty_error() {
 	local FILE="$1"
 
 	echo_clear_line
-	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printed:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$FILE${COLOR_RESET}"
+	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty print error:${COLOR_RESET}  ${COLOR_PRETTY_FILENAME}$TARGET${COLOR_RESET}"
 }
 
+TARGET_FILE="$1"
+REAL_FILE="$2"
 OLD_DIR="$(pwd)"
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
-FILE="$(resolve_path "$OLD_DIR" ${1+"$@"})"
-run_helpers "PRETTY" "pretty_print.d" "$1"
+TARGET_FILE="$(resolve_path "$OLD_DIR" "$TARGET_FILE")"
+
+if [ ! -z "$REAL_FILE" ]; then
+	REAL_FILE="$(resolve_path "$OLD_DIR" ${REAL_FILE})"
+else
+	REAL_FILE="$TARGET_FILE"
+fi
+
+run_helpers "PRETTY" "pretty_print.d" "$TARGET_FILE" "$REAL_FILE"
+RESULT=$?
+
+if [ $RESULT -ne 0 ]; then
+	exit $RESULT
+fi
+
+if [ ! -s "$TARGET_FILE" ]; then
+	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printing generated a zero-byte file for${COLOR_RESET} ${COLOR_PRETTY_FILENAME}$TARGET${COLOR_RESET}"
+	exit 1
+fi
+
+exit 0

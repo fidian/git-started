@@ -3,7 +3,7 @@
 if [ -z "$1" ]; then
 	test_for_program jsl
 else
-	FILE="$1"
+	local FILE="$1"
 
 	jsl $LINT_JS_JSL_OPTIONS "$FILE" > /dev/null 2>&1
 
