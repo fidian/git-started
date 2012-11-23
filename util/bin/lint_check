@@ -1,6 +1,8 @@
 #!/bin/bash
 
+OLD_DIR="$(pwd)"
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
-FILE_TYPE="$(get_file_type "$1")"
-run_all_scripts "util/helpers/lint_check.d/$FILE_TYPE/"
+FILE="$(resolve_path "$OLD_DIR" ${1+"$@"})"
+FILE_TYPE="$(get_file_type "$FILE")"
+run_all_scripts "util/helpers/lint_check.d/$FILE_TYPE/" "$FILE"
