@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -f .gitmodules ]; then
+	echo_prompt "git submodules: "
+
+	git submodule init > /dev/null 2>&1
+
+	if [ $? -ne 0 ]; then
+		echo "Error running 'git submodule init'"
+	else
+		git submodule update > /dev/null 2>&1
+
+		if [ $? -ne 0 ]; then
+			echo "Error running 'git submodule update'"
+		else
+			echo "Ok"
+		fi
+	fi
+fi
+
