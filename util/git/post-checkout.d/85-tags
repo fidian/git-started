@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if [ -f tags ] || [ -f TAGS ]; then
+	util/bin/build_tags
+fi
