@@ -1,9 +1,19 @@
 # This script is intended to be sourced when the current
 # directory is the top level directory of the repository.
+#
+# Some options set up defaults, but you can override them through the command
+# line invocation as well as in a local config file in util/config
+#
+# Command line override:
+#    DEBUG=1 util/bin/setup_repository
 
 # Debugging mode - lots of useful debug information gets shown
 # when you change this to 1
-DEBUG=0
+: ${DEBUG:=0}
+
+# Enable colors - you can use "yes" for always use colors, "no" to never use
+# colors, or "auto" for them to be automatically applied if using a terminal
+: ${COLOR:="auto"}
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking
 # Include trailing slash
@@ -47,6 +57,20 @@ PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap 
 # Provide the ability to override the above config with your own values
 if [ -f util/config ]; then
 	. util/config
+fi
+
+# Detect if COLOR=auto and if we are on a tty
+if [ "$COLOR" == "auto" ]; then
+	if [ -t 0 ]; then
+		COLOR="yes"
+	else
+		COLOR="no"
+	fi
+fi
+
+# If COLOR is "no", clear out all colors
+if [ "$COLOR" == "no" ]; then
+	unset printenv | grep -o "^COLOR_[^=]"
 fi
 
 # Write out a debug message to stderr if debug mode enabled
