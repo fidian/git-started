@@ -35,7 +35,7 @@ while read FILE; do
 	run_all_scripts util/git/pre-commit.d/
 
 	if [ $? -ne 0 ]; then
-		ERROR_COUNT=$(( $ERROR_COUNT + 1 ))
+		: $((ERROR_COUNT++))
 	fi
 
 	# Clear away the current file
