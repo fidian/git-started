@@ -148,7 +148,7 @@ function resolve_path() {
 # Exit on error
 # Parameters:  DirectoryOfScripts ArgsToPassToScripts
 function run_all_scripts() {
-	local RESULT
+	local RESULT SCRIPT
 	local DIR="$1"
 	shift
 
@@ -158,12 +158,18 @@ function run_all_scripts() {
 		return 0
 	fi
 
-	for FN in "$DIR"/*; do
-		debug "run_all_scripts '$DIR' '$FN'"
+	while read FN; do
+		SCRIPT="$DIR/$FN"
+
+		if [ -f "local/$SCRIPT" ]; then
+			SCRIPT="local/$SCRIPT"
+		fi
+
+		debug "run_all_scripts '$SCRIPT'"
 		# Run in subshell so we preserve environment.  Keep current environment
 		# variables around for things like the pre-commit hook.
 		(
-			. "$FN" ${1+"$@"}
+			. "$SCRIPT" ${1+"$@"}
 		)
 
 		# Stop if any script reported an error
@@ -173,7 +179,7 @@ function run_all_scripts() {
 			debug "run_all_scripts result $RESULT"
 			return $RESULT
 		fi
-	done
+	done < <(find "$DIR" local/"$DIR" -maxdepth 1 -type f 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
 	debug "run_all_scripts all passed"
 	return 0
