@@ -42,4 +42,4 @@ Lint checkers:
 
 Pretty printers:
 
-* None
+* phpbeautifier - PEAR's PHP_Beautifier package.  http://pear.php.net/package/PHP_Beautifier

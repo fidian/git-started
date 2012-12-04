@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	test_for_program php_beautifier
+else 
+	local FILE="$1"
+	local TEMP="$(temporary_file)"
+
+	php_beautifier $PRETTY_PHP_PHPBEAUTIFIER_OPTIONS --input "$FILE" --output "$TEMP" > /dev/null 2>&1
+
+	if [ $? -ne 0 ]; then
+		pretty_error "$TARGET"
+		php_beautifier $PRETTY_PHP_PHPBEAUTIFIER_OPTIONS --input "$FILE" --output /dev/null
+	else
+		# mv does not preserve destination file permissions
+		cat "$TEMP" > "$FILE"
+		rm "$TEMP"
+	fi
+fi
