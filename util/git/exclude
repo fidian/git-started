@@ -45,10 +45,10 @@ tags
 TAGS
 !TAGS/
 
-# Node modules - packages installed by npm
+# Extra stuff installed or generated automatically for you and none
+# should ever be committed
 /node_modules/
-
-# Extra stuff, like composer, added for you and should not be committed
+.sass-cache/
 /vendor/
 
 # Custom location for local files
