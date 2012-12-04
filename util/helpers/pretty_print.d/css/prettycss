@@ -12,6 +12,8 @@ else
 		pretty_error "$TARGET"
 		prettycss $PRETTY_CSS_PRETTYCSS_OPTIONS "$FILE" 2>&1
 	else
-		mv "$TEMP" "$FILE"
+		# mv does not preserve destination file permissions
+		cat "$TEMP" > "$FILE"
+		rm "$TEMP"
 	fi
 fi
