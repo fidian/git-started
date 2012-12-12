@@ -2,7 +2,8 @@
 # directory is the top level directory of the repository.
 #
 # Some options set up defaults, but you can override them through the command
-# line invocation as well as in a local config file in util/config
+# line invocation as well as in a local config file in
+# util/config/bare_repo_setup
 #
 # Command line override:
 #    DEBUG=1 util/bin/setup_repository
@@ -57,8 +58,8 @@ PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap 
 PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
 
 # Provide the ability to override the above config with your own values
-if [ -f util/config ]; then
-	. util/config
+if [ -f util/config/bare_repo_setup ]; then
+	. util/config/bare_repo_setup
 fi
 
 # Detect if COLOR=auto and if we are on a tty
