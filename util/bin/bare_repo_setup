@@ -182,7 +182,7 @@ function run_all_scripts() {
 			debug "run_all_scripts result $RESULT"
 			return $RESULT
 		fi
-	done < <(find "$DIR" local/"$DIR" -maxdepth 1 -type f 2>/dev/null | sed "s/.*\\///" | sort | uniq)
+	done < <(find "$DIR" local/"$DIR" -maxdepth 1 -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
 	debug "run_all_scripts all passed"
 	return 0
