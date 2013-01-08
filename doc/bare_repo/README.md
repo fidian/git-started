@@ -38,7 +38,7 @@ How To Include In Your Project
         git pull
         git push
 
-4.  Configure your project.  You may need to create `util/config`, which is a bash shell script that can apply additional configuration settings to the shell scripts.  Also, you may wish to add files under `util/helpers/` that are specific to your project.
+4.  Configure your project.  You may need to create `util/config/bare_repo_setup`, which is a bash shell script that can apply additional configuration settings to the shell scripts.  Also, you may wish to add files under `util/helpers/` that are specific to your project.
 
 5.  Run `util/bin/setup_repository` to set up the git hooks and do other actions.
 
@@ -68,13 +68,19 @@ This repository is intended to augment yours and to get some tedious tasks out o
 
 We intend to let you extend everything without having to modify any of the files in this repository.  That way you can follow the upgrade process to get updates and your changes and scripts won't be overwritten.  To give you this flexibility, we ask that you don't modify any files that are part of bare_repo except the symbolic links to README.md and LICENSE in the root.
 
-util/config
------------
+util/config/bare_repo_setup
+---------------------------
 
 This bash shell script is executed with every script.  It's a good spot to put settings that apply to everything on your project.  Here's the current settings:
 
-* `IGNORE_DIRS` - Space separated list of directories that should be excluded from pretty printing and lint checking
-* ... that's it.  So far.
+* `COLOR` - Determines if we should use color or not.  Allowed values are `yes` (always use color), `no` (never use color) and `auto` (use color if displaying to a TTY).
+* `COLOR_*` - There are lots of settings controlling the colors for errors, warnings, filenames, etc.
+* `DEBUG` - Display lots of debugging information.  To enable, set it to 1.  You can also use `DEBUG=1 util/bin/pretty_print <file>` to enable it for a single program.
+* `IGNORE_DIRS` - Space separated list of directories that should be excluded from pretty printing and lint checking.
+* `LINT_<type>` - These are the linting programs that are configured for each detected file type.  See `util/helpers/lint_check.d/<type>` for available configured programs.
+* `LINT_<type>_<program>_OPTIONS` - The default command-line flags and parameters that are used by the linting program.
+* `PRETTY_*` - These are the pretty printer programs that are configured for each detected file type.  See `util/helpers/pretty_print.d/<type>` for available configured programs.
+* `PRETTY_<type>_<program>_OPTIONS` - The default command-line flags and parameters that are used by the pretty printing program.
 
 
 util/git/post-checkout.d/
