@@ -46,10 +46,13 @@ TAGS
 !TAGS/
 
 # Extra stuff installed or generated automatically for you and none
-# should ever be committed
+# should ever be committed.
 /node_modules/
 .sass-cache/
 /vendor/
+
+# Generated log files
+/npm-debug.log
 
 # Custom location for local files
 /local
