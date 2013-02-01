@@ -8,6 +8,10 @@
 # Command line override:
 #    DEBUG=1 util/bin/setup_repository
 
+if [ -d "node_modules/.bin" ]; then
+	PATH="$(pwd)/node_modules/.bin;$PATH"
+fi
+
 # Debugging mode - lots of useful debug information gets shown
 # when you change this to 1
 : ${DEBUG:=0}
