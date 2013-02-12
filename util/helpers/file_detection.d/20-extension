@@ -7,14 +7,14 @@ case "$EXT" in
 		echo "css"
 		;;
 
-	js)
-		echo "js"
-		;;
-
 	htm|html)
 		echo "html"
 		;;
 		
+	js)
+		echo "js"
+		;;
+
 	php|inc)
 		echo "php"
 		;;
