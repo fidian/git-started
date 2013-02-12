@@ -49,6 +49,7 @@ LINT_PHP="cli"
 
 # Same goes for the pretty printers
 PRETTY_CSS="prettycss"
+PRETTY_MARKDOWN="unexpand"
 PRETTY_PHP="phpbeautifier"
 
 # Lint command-line options for various language/program pairs

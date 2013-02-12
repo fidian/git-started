@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+	test_for_program unexpand
+else 
+	local FILE="$1"
+	local TEMP="$(temporary_file)"
+
+	unexpand --tabs=4 --first-only "$FILE" > "$TEMP" 2>&1
+
+	if [ $? -ne 0 ]; then
+		pretty_error "$TARGET"
+		unexpand --tabs=4 --first-only "$FILE" > "$TEMP" 2>&1
+	else
+		# mv does not preserve destination file permissions
+		cat "$TEMP" > "$FILE"
+		rm "$TEMP"
+	fi
+fi
