@@ -3,11 +3,13 @@
 . util/bin/bare_repo_setup
 
 # Determine the revision we are comparing against
-if git-rev-parse --verify HEAD 1>/dev/null 2>&1; then
+if git rev-parse --verify HEAD 1>/dev/null 2>&1; then
 	AGAINST=HEAD
+	debug "Diffing against head"
 else
 	# Initial commit: diff against an empty tree object
 	AGAINST=4b825dc642cb6eb9a060e54bf8d69288fbee4904
+	debug "Diffing against an empty commit"
 fi
 
 # Iterate over each file that is being committed
@@ -24,17 +26,18 @@ while read FILE; do
 	# See if the file was deleted
 	if [[ -f "$FILE" && ! -h "$FILE" ]]; then
 		FILE_DELETED=false
+	else
+		debug "Detected $FILE was deleted"
 	fi
 
-	for DIR in IGNORE_DIRS; do
+	for DIR in $IGNORE_DIRS; do
 		if [[ "$FILE" = $DIR* ]]; then
 			FILE_IGNORED=true
+			debug "Detected $FILE is to be ignored"
 		fi
 	done
 
-	if ! $FILE_IGNORED && ! $FILE_DELETED; then
-		run_all_scripts util/git/pre-commit.d/
-	fi
+	run_all_scripts util/git/pre-commit.d/
 
 	if [ $? -ne 0 ]; then
 		: $((ERROR_COUNT++))
