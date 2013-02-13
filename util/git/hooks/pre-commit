@@ -32,7 +32,9 @@ while read FILE; do
 		fi
 	done
 
-	run_all_scripts util/git/pre-commit.d/
+	if ! $FILE_IGNORED && ! $FILE_DELETED; then
+		run_all_scripts util/git/pre-commit.d/
+	fi
 
 	if [ $? -ne 0 ]; then
 		: $((ERROR_COUNT++))
