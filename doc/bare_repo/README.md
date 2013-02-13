@@ -13,30 +13,30 @@ How To Include In Your Project
 
 3.  Fetch and merge this repository into yours.
 
-        # Start off in your repository
-        cd your_repository
-        
-        # It is best to work in branches so you can undo things easier
-        git checkout -b bare_repo_branch
-        
-        # Add the bare_repo repository as a remote
-        git remote add bare_repo https://github.com/fidian/bare_repo.git
-        
-        # Get the commit history from bare_repo
-        git fetch bare_repo
-        
-        # Merge bare_repo's master into your working branch
-        git merge bare_repo/master
-        
-        # Handle merge conflicts and finish the commit if you have problems
-        # ... work work work ...
-        
-        # Then you are ready to merge bare_repo_branch into your repository
-        git checkout master
-        git merge bare_repo_branch
-        git branch -d bare_repo_branch
-        git pull
-        git push
+		# Start off in your repository
+		cd your_repository
+		
+		# It is best to work in branches so you can undo things easier
+		git checkout -b bare_repo_branch
+		
+		# Add the bare_repo repository as a remote
+		git remote add bare_repo https://github.com/fidian/bare_repo.git
+		
+		# Get the commit history from bare_repo
+		git fetch bare_repo
+		
+		# Merge bare_repo's master into your working branch
+		git merge bare_repo/master
+		
+		# Handle merge conflicts and finish the commit if you have problems
+		# ... work work work ...
+		
+		# Then you are ready to merge bare_repo_branch into your repository
+		git checkout master
+		git merge bare_repo_branch
+		git branch -d bare_repo_branch
+		git pull
+		git push
 
 4.  Configure your project.  You may need to create `util/config/bare_repo_setup`, which is a bash shell script that can apply additional configuration settings to the shell scripts.  Also, you may wish to add files under `util/helpers/` that are specific to your project.
 
@@ -48,17 +48,17 @@ Upgrading
 
 If you use the bare_repo repository and wish to update to the latest copy of these scripts, the upgrade process is essentially the same.
 
-    cd your_repository
-    git checkout -b bare_repo_branch
-    git fetch bare_repo
-    # If that fails, use "git remote add" and then fetch again
-    git merge bare_repo/master
-    # Handle merge conflicts here
-    git checkout master
-    git merge bare_repo_branch
-    git branch -d bare_repo_branch
-    git pull
-    git push
+	cd your_repository
+	git checkout -b bare_repo_branch
+	git fetch bare_repo
+	# If that fails, use "git remote add" and then fetch again
+	git merge bare_repo/master
+	# Handle merge conflicts here
+	git checkout master
+	git merge bare_repo_branch
+	git branch -d bare_repo_branch
+	git pull
+	git push
 
 
 Customization
@@ -127,8 +127,8 @@ util/helpers/setup.d
 Setup scripts to run in order to prepare your repository correctly.  This can check to make sure that you have the right software installed (like npm or php), build configuration files for your system, check out submodules, download things and do anything else that is required to get the repository working for you.
 
 
-License
-=======
+License Information
+===================
 
 This project is licensed under a MIT license with a non-advertising clause.  This license applies **ONLY** to the files that are a part of the bare_repo repository and does not extend into your project, even though your files are intended to be mixed with this repository.  See the [GitHub project] for information about file histories and to help determine what files come from the bare_repo repository.
 
