@@ -15,6 +15,10 @@ case "$EXT" in
 		echo "js"
 		;;
 
+	json)
+		echo "json"
+		;;
+
 	md)
 		echo "markdown"
 		;;
