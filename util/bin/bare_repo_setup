@@ -45,7 +45,7 @@ COLOR_RESET="\e[m" # Reset
 # LINT_LANG=""
 LINT_CSS="prettycss"
 LINT_JS="jslint jsl"
-LINT_JSON="jslint jsl"
+LINT_JSON="jslint"
 LINT_PHP="cli"
 
 # Same goes for the pretty printers
