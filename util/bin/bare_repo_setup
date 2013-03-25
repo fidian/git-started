@@ -131,7 +131,39 @@ function get_file_type() {
 	fi
 
 	echo "$TYPE"
-	return 0;
+	return 0
+}
+
+# Returns a positive result (exit code 0) if we are currently in a
+# git submodule.  Based off https://gist.github.com/sehe/1208393
+function is_submodule() {
+	local CHILD_DIR PARENT_DIR MODULE_PATH
+
+	# Get the root of this repository
+	CHILD_DIR="$(git rev-parse --show-toplevel)"
+
+	if [ -z "$CHILD_DIR" ]; then
+		return 1 # Negative
+	fi
+
+	# Get the root of the parent repository
+	PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
+
+	if [ -z "$PARENT_DIR" ]; then
+		return 1 # Negative
+	fi
+
+	# List all submodules in parent.  Careful with the subshells
+	while read MODULE_PATH; do
+		# Get the full path to the module
+		MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
+
+		if [ "$MODULE_PATH" != "$CHILD_DIR" ]; then
+			return 0 # Affirmative
+		fi
+	done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
+
+	return 1 # Negative
 }
 
 # Resolve paths to a directory
