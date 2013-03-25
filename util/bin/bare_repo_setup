@@ -247,7 +247,7 @@ function run_helpers() {
 	fi
 
 	local FILE_TYPE="$(get_file_type "$TARGET")"
-	local CONFIGS_VAR_NAME="${PREFIX}_${FILE_TYPE^^}"
+	local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
 	local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS RESULT FULL_COMMAND
 	eval "CONFIGS=\$$CONFIGS_VAR_NAME"
 	HELPER_DIR="util/helpers/${HELPER_DIR}/${FILE_TYPE}"
@@ -336,7 +336,7 @@ function stat_file() {
 function temporary_file() {
 	if test_for_program mktemp; then
 		debug "temporary_file mktemp"
-		mktemp
+		mktemp 2> /dev/null || mktemp -t bare_repo
 		return 0
 	fi
 	
