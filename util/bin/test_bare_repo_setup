@@ -5,57 +5,142 @@
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
 
-ERRORS=0
-WARNINGS=0
+FAILURES=0
+TESTS=0
 
-function ERROR() {
-	echo "Error:  $1"
-	: $((ERRORS++))
+function TEST() {
+	printf "%s" "$1: "
+	: $((TESTS++))
 }
 
-function WARNING() {
-	echo "Warning:  $1"
-	: $((WARNINGS++))
+function PASS() {
+	echo "ok"
+}
+
+function FAIL() {
+	echo "FAIL"
+	echo " ****** $1"
+	: $((FAILURES++))
 }
 
 
-for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././super.hard/path.to/understand.me:me; do
+#
+# file_extension
+#
+for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././dir.name/exe.txt/file.me:me; do
 	EXPECTED="${FILE##*:}"
 	INPUT="${FILE%:*}"
+	TEST "file_extension \"$INPUT\" = \"$EXPECTED\""
 	ACTUAL="$(file_extension "$INPUT")"
 
-	if [ "$ACTUAL" != "$EXPECTED" ]; then
-		ERROR "file_extension \"$INPUT\" results in \"$ACTUAL\", not \"$EXPECTED\""
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
 	fi
 done
 
+
+#
+# get_file_type
+#
 for FILE in a.css:css b.js:js c.html:html cc.htm:html d.php:php dd.inc:php e.txt:unknown; do
 	EXPECTED="${FILE##*:}"
 	INPUT="${FILE%:*}"
+	TEST "get_file_type \"$INPUT\" = \"$EXPECTED\""
 	ACTUAL="$(get_file_type "$INPUT")"
 
-	if [ "$ACTUAL" != "$EXPECTED" ]; then
-		ERROR "get_file_type \"$INPUT\" results in \"$ACTUAL\", not \"$EXPECTED\""
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
 	fi
 done
 
+
+#
+# is_submodule
+#
+TEST "is_submodule"
+FAIL "no tests exist"
+
+
+#
+# resolve_path
+#
+for FILE in /a,b:/a/b /c,d/e:/c/d/e f/,g/:f//g/ h/i,/j/k:/j/k; do
+	EXPECTED="${FILE##*:}"
+	INPUT="${FILE%:*}"
+	DIRNAME="${INPUT%,*}"
+	FILENAME="${INPUT##*,}"
+	TEST "resolve_path \"$DIRNAME\" \"$FILENAME\" = \"$EXPECTED\""
+	ACTUAL="$(resolve_path "$DIRNAME" "$FILENAME")"
+
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
+	fi
+done
+
+
+#
+# run_all_scripts
+#
+TEST "run_all_scripts"
+FAIL "no tests exist"
+
+
+#
+# run_helpers
+#
+TEST "run_helpers"
+FAIL "no tests exist"
+
+
+#
+# stat_file
+#
+TEST "stat_file"
+FAIL "no tests exist"
+
+
+#
+# temporary_file
+#
+TEST "temporary_file"
 FN="$(temporary_file)"
 if [ -z "$FN" ]; then
-	ERROR "temporary_file did not return a filename"
+	FAIL "no filename returned"
 elif [ ! -f "$FN" ]; then
-	ERROR "temporary_file returned \"$FN\" but did not create the file"
+	FAIL "file was not created"
 else
+	PASS
 	rm "$FN"
 fi
 
-if test_for_program totally_unexpected_and_invalid_program_we_hope; then
-	ERROR "test_for_program is wrongly detecting a program that does not exist"
-fi
-if ! test_for_program ls; then
-	ERROR "test_for_program can not detect the presence of \"ls\""
+
+#
+# test_for_program
+#
+TEST "test_for_program miss"
+if ! test_for_program totally_unexpected_and_invalid_program_we_hope; then
+	PASS
+else
+	FAIL "says bad program name exists"
 fi
 
+TEST "test_for_program hit"
+if test_for_program ls; then
+	PASS
+else
+	FAIL "ls was not found"
+fi
+
+
+#
+# Done!
+#
 echo "Tests complete"
 echo ""
-echo "Warnings: $WARNINGS"
-echo "Errors: $ERRORS"
+echo "Failed $FAILURES out of $TESTS tests"
