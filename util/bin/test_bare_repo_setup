@@ -62,6 +62,13 @@ done
 # is_submodule
 #
 TEST "is_submodule"
+# Tests to write
+# /root - false
+# /root/sub - false
+# /root/root - true
+# /root/sub/root - true
+# /root/root/sub - true
+# /root/sub/root/sub - true
 FAIL "no tests exist"
 
 
@@ -88,6 +95,16 @@ done
 # run_all_scripts
 #
 TEST "run_all_scripts"
+# Tests to write
+# Empty directory = success
+# First script fails = fail and stop running more
+# Second script fails = fail and stop running more
+# Last script fails = fail and stop running more
+# One script passes = success
+# Multiple scripts pass = success
+# Confirm environment is reset
+# Confirm subdirectories are not scanned
+# Confirm files in local config override and are injected properly
 FAIL "no tests exist"
 
 
@@ -95,6 +112,14 @@ FAIL "no tests exist"
 # run_helpers
 #
 TEST "run_helpers"
+# Tests to write
+# Ensure the variable prefix is used
+# Ensure helper directory is used (no dir, empty dir, multiple files)
+# Ensure files are executed in the right order
+# Check that local overrides are applied or inserted
+# Check that the original filename isn't altered?
+# Check that the target exists if one is specified
+# If no target, check that the original is used
 FAIL "no tests exist"
 
 
@@ -102,6 +127,10 @@ FAIL "no tests exist"
 # stat_file
 #
 TEST "stat_file"
+# The "stat" of a file should change if the MD5 (content), size, owner,
+# group, or mode changes.  If there are other things to check that would be
+# tracked by git, then those too should be checked.
+# This should return a single line describing a file.
 FAIL "no tests exist"
 
 
