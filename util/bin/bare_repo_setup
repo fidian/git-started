@@ -329,12 +329,12 @@ function run_helpers() {
 
 
 # Returns information about a file as a string
-# Result:  MD5 SizeInBytes UserName:GroupName AccessMode FileType
+# Result:  MD5 Mode User:Group LastMod Size
 function stat_file() {
-	local HASH FN="$1"
-	HASH="$(git hash-object "$FN" | tr -d "\n")"
-	/usr/bin/stat --format="%f%a %u:%g %Y %s" "$FN" 2>/dev/null | \
-	stat -f "%p %u:%g %m %z" "$FN"
+	local FN="$1"
+	git hash-object "$FN" | tr -d "\n"
+	/usr/bin/stat --format=" %f%a %u:%g %Y %s" "$FN" 2>/dev/null || \
+	stat -f " %p %u:%g %m %z" "$FN"
 }
 
 # Create a temporary file and echo out the name
