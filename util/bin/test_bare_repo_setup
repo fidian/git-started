@@ -126,12 +126,55 @@ FAIL "no tests exist"
 #
 # stat_file
 #
-TEST "stat_file"
+TEST "stat_file temporary_file"
 # The "stat" of a file should change if the MD5 (content), size, owner,
 # group, or mode changes.  If there are other things to check that would be
 # tracked by git, then those too should be checked.
 # This should return a single line describing a file.
-FAIL "no tests exist"
+FN1="$(temporary_file)"
+FN2="$(temporary_file)"
+if [ -z "$FN1" ] || [ -z "$FN2" ] || [ "$FN1" == "$FN2" ]; then
+	FAIL "test failed because temporary_file routine does not work"
+else
+	PASS
+
+	echo "Here is some content" >> $FN1
+	chmod a-w "$FN1"
+	sleep 2 # Guarantee timestamp mismatches, even on FAT-based systems
+
+	TEST "stat_file non-empty string"
+	STAT1="$(stat_file "$FN1")"
+	if [ -z "$STAT1" ]; then
+		FAIL "Empty sting returned for stat"
+	else
+		PASS
+	fi
+
+	TEST "stat_file different mode"
+	cp -p "$FN1" "$FN2"
+	chmod a+w "$FN2"
+	if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
+		FAIL "File mode has changed"
+	else
+		PASS
+	fi
+
+	TEST "stat_file different timestamp"
+	echo "Here is some content" >> $FN2
+	if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
+		FAIL "timestamps are different"
+	else
+		PASS
+	fi
+
+	TEST "stat_file same"
+	cp -p "$FN1" "$FN2"
+	if [ "$(stat_file "$FN2")" != "$STAT1" ]; then
+		FAIL "Everything is the same and this should match"
+	else
+		PASS
+	fi
+fi
 
 
 #
