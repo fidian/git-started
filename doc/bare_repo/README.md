@@ -6,49 +6,98 @@ Are you tired of setting up pretty printers and lint checkers for your project, 
 It currently works really well for Linux projects.  I am working towards making it run smoothly on a Mac and would happily accept patches for Cygwin, Mac and other platforms.  It would also be nifty to have this repository work as a submodule, so work that advances that goal would also be extremely welcome.
 
 
+Submodule vs. Merged
+====================
+
+You can include all of the benefits of this toolset either merged into your repository or as a submodule.  There are distinct advantages to each:
+
+ * When used as a submodule, your code has a clean separation from the commits from this project.
+ * Since these tools become part of your tooling, merging the code may make sense.
+ * Submodules rely on the upstream repository existing when you initialize a copy of your repository.
+ * Merged code is ready to go immediately; you only need to clone and run one script to set up your environment.
+ * Sharing your custom modifications back to this repository as a pull request is a lot easier when used as a submodule.
+ * There are several directories that exist in this project that are designed to start structuring your software in a good way, but these only help if you merge the commits.
+ * A submodule lets you put these git hooks and code anywhere in your project you would like.
+ * There is more setup involved with a submodule in order to let you customize the scripts.
+ * Code review tools will audit the bare_repo commits as though they were your own when merging in the code.
+
+
 How To Include In Your Project
 ==============================
 
-1.  Use git and a Linux-based environment.  This may work with cygwin, but that's untested.  It relies heavily on bash and several tools that are typically found in the `coreutils` package.
+You need to use git as your version control system.  These scripts work on Linux, Mac and possibly other Unix flavors.  It may work with cygwin on Windows (or similar), but that's currently untested.  The scripts rely heavily on bash and several tools that are typically found in the `coreutils` package.
 
-2.  Create a repository for your project.  _Don't clone this repository!_  It won't be what you need in the end.  If you already have a repository created, you can safely skip this step.
+Next, decide if you want to merge this repository or use this as a submodule.  If you are unsure, try the submodule route first and see if that causes too many problems for you.  Follow the steps in that section, then come back here.
 
-3.  Fetch and merge this repository into yours.
+Finally, _do not clone this repository!_  That won't be what you need in the end.  You want to augment your repository with these tools, not base all of your work off this code.  If you clone this repository, your `origin` will be set to be this project.  While you can still change the setting, it is not what you desire.
 
-		# Start off in your repository
-		cd your_repository
-		
-		# It is best to work in branches so you can undo things easier
-		git checkout -b bare_repo_branch
-		
-		# Add the bare_repo repository as a remote
-		git remote add bare_repo https://github.com/fidian/bare_repo.git
-		
-		# Get the commit history from bare_repo
-		git fetch bare_repo
-		
-		# Merge bare_repo's master into your working branch
-		git merge bare_repo/master
-		
-		# Handle merge conflicts and finish the commit if you have problems
-		# ... work work work ...
-		
-		# Then you are ready to merge bare_repo_branch into your repository
-		git checkout master
-		git merge bare_repo_branch
-		git branch -d bare_repo_branch
-		git pull
-		git push
-
-4.  Configure your project.  You may need to create `util/config/bare_repo_setup`, which is a bash shell script that can apply additional configuration settings to the shell scripts.  Also, you may wish to add files under `util/helpers/` that are specific to your project.
-
-5.  Run `util/bin/setup_repository` to set up the git hooks and do other actions.
+Next, follow the section that suits your situation.
 
 
-Upgrading
-=========
+Including as a Submodule
+------------------------
 
-If you use the bare_repo repository and wish to update to the latest copy of these scripts, the upgrade process is essentially the same.
+First, go to the [GitHub project] and fork it.  This way you can later customize some of the scripts and still get all of the benefits of this repository and updates.
+
+	# Start off in your repository
+	cd your_repository
+
+	# Add your fork as a submodule - we are putting the files in
+	# the hidden directory .hooks to hide them
+	git submodule add https://github.com/fidian/bare_repo.git .hooks
+
+	# Commit
+	git commit -m 'Adding bare_repo'
+
+Updates from here are pretty easy.  First you need to merge commits into your fork of the project, then you update the submodule.
+
+    # I put the submodule into your_repository/.hooks
+	cd your_repository/.hooks
+
+	# Add the remote, in case you did not have this yet
+	git remote add bare_repo https://github.com/fidian/bare_repo.git
+
+	# Merge in upstream changes
+	git fetch bare_repo
+	git merge bare_repo/master
+
+	# Push out to your fork
+	git push
+
+You can also safely add additonal changes to your fork.
+
+
+Including by Merging
+--------------------
+
+This adds the commit history of this project into your repository as though the edits were made directly in your system.
+
+	# Start off in your git repository
+	cd your_repository
+	
+	# It is best to work in branches so you can undo things easier
+	git checkout -b bare_repo_branch
+	
+	# Add the bare_repo repository as a remote
+	git remote add bare_repo https://github.com/fidian/bare_repo.git
+	
+	# Get the commit history from bare_repo
+	git fetch bare_repo
+	
+	# Merge bare_repo's master into your working branch
+	git merge bare_repo/master
+	
+	# Handle merge conflicts and finish the commit if you have problems
+	# ... work work work ...
+	
+	# Then you are ready to merge bare_repo_branch into your repository
+	git checkout master
+	git merge bare_repo_branch
+	git branch -d bare_repo_branch
+	git pull
+	git push
+
+Upgrades are essentially the same thing.  Here's the abbreviated version.
 
 	cd your_repository
 	git checkout -b bare_repo_branch
@@ -63,12 +112,34 @@ If you use the bare_repo repository and wish to update to the latest copy of the
 	git push
 
 
+Setting Up The Hooks
+====================
+
+In order to see any benefit at all, you *must* set up the repository.
+
+    # When merged
+	util/bin/setup_repository
+
+	# As submodule in .hooks directory
+	.hooks/util/bin/setup_repository
+
+By default, this will do the following things:
+
+ * Download and install composer if you have a `composer.json` file.  Composer will be saved as `vendor/composer.phar`.
+ * Rebuild tags/CTAGS if either of those files exist.
+ * Setup some files that should not be committed by overriding `.git/exclude`.
+ * Initialize and update any git submodules.
+ * Set up the use of the git hooks so you can plug in additional scripts.
+ * Run `npm install` if you have a `package.json` file.
+
+
 Customization
 =============
 
 This repository is intended to augment yours and to get some tedious tasks out of the way.  Its goal is to let you extend its functionality quickly and easily.  You can tie into many different points in order to configure, extend and override actions that are performed.
 
-We intend to let you extend everything without having to modify any of the files in this repository.  That way you can follow the upgrade process to get updates and your changes and scripts won't be overwritten.  To give you this flexibility, we ask that you don't modify any files that are part of bare_repo except the symbolic links to README.md and LICENSE in the root.
+We intend to let you extend everything without having to modify any of the files in this repository.  That way you can follow the upgrade process to get updates and your changes and scripts won't be overwritten.  To give you this flexibility, we ask that you don't modify any files that are part of bare_repo except the symbolic links to README.md and LICENSE in the root.  It just makes the upgrade process easier.  If you need to tweak a script to allow you to hook in custom functionality, how about logging an issue?
+
 
 util/config/bare_repo_setup
 ---------------------------
