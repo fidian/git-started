@@ -14,7 +14,7 @@ fi
 TEMPFILE="$(temporary_file)"
 cp -p "$FILE" "$TEMPFILE"
 BEFORE="$(stat_file "$TEMPFILE")"
-util/bin/pretty_print "$TEMPFILE" "$FILE"
+"${TOOL_DIR}/bin/pretty_print" "$TEMPFILE" "$FILE"
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then

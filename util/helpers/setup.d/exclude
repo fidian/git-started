@@ -1,4 +1,4 @@
 #!/bin/bash
 
-setup_symlink ".git/info/" "exclude" "../../util/git/exclude"
+setup_symlink ".git/info/" "exclude" "${TOOL_DIR}/git/exclude"
 

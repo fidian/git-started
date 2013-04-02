@@ -1,12 +1,11 @@
 #!/bin/bash
 
-cd "$(dirname "$0")"/../..
-. util/bin/bare_repo_setup
+. "$(dirname "$0")/bare_repo_setup"
 
 EXCLUDE="--exclude=.git"
 
 for D in IGNORE_DIRS; do
-	EXCLUDE="$EXCLUDE --exclude=$D"
+	EXCLUDE+=" --exclude=$D"
 done
 
 if [ -f tags ]; then

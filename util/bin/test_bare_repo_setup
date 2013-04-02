@@ -2,8 +2,7 @@
 # 
 # Ensure things are all correct
 
-cd "$(dirname "$0")"/../..
-. util/bin/bare_repo_setup
+. "$(dirname "$0")/bare_repo_setup"
 
 FAILURES=0
 TESTS=0
@@ -22,6 +21,28 @@ function FAIL() {
 	echo " ****** $1"
 	: $((FAILURES++))
 }
+
+
+#
+# bash features
+#
+TEST "bash \$BASH_SOURCE"
+
+if [ -z "$BASH_SOURCE" ]; then
+	FAIL "Not set"
+else
+	PASS
+fi
+
+TEST "bash +="
+A="AAA"
+A+="BBB"
+
+if [ "$A" != "AAABBB" ]; then
+	FAIL "Mismatch: got '$A' wanted 'AAABBB'"
+else
+	PASS
+fi
 
 
 #

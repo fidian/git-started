@@ -1,87 +1,23 @@
-# This script is intended to be sourced when the current
-# directory is the top level directory of the repository.
+# Provide a consistent environment for the hooks as well as helper
+# functions solving common problems
 #
+# This script will always put you at the top level of the repository to modify
+# with several configuration variables set.
+#
+#
+#   STARTING_DIR = The directory where the user started the command
+#   TOOL_DIR = The 'util/' directory in bare_repo, relative
+#   TARGET_DIR = The root directory of the repository to act upon
+#   LOCAL_DIR = The 'local/' directory to use, under TARGET_DIR
+#   SUBMODULE_PATH = Path to bare_repo as a submodule or empty string
+#
+# There are many options that can be set in order to tweak the behavior.
 # Some options set up defaults, but you can override them through the command
 # line invocation as well as in a local config file in
 # util/config/bare_repo_setup
 #
-# Command line override:
+# Command line override example for the DEBUG setting:
 #    DEBUG=1 util/bin/setup_repository
-
-if [ -d "node_modules/.bin" ]; then
-	PATH="$(pwd)/node_modules/.bin;$PATH"
-fi
-
-# Debugging mode - lots of useful debug information gets shown
-# when you change this to 1
-: ${DEBUG:=0}
-
-# Enable colors - you can use "yes" for always use colors, "no" to never use
-# colors, or "auto" for them to be automatically applied if using a terminal
-: ${COLOR:="auto"}
-
-# Directories to ignore for ctags, etags, pretty printing, lint checking
-# Include trailing slash
-IGNORE_DIRS="3rd_party/ node_modules/ vendor/"
-
-# Show messages in pretty colors.  Change or remove colors here.
-COLOR_LINT_ERROR="\e[1;31m" # Bright red
-COLOR_LINT_FILENAME="\e[1;33m" # Bright yellow
-COLOR_PRETTY_ERROR="\e[1;31m" # Bright red
-COLOR_PRETTY_FILENAME="\e[1;33m" # Bright yellow
-COLOR_PRETTY_MESSAGE="\e[32m" # Green
-COLOR_RESET="\e[m" # Reset
-
-# Lint and pretty printer programs to use, by language.
-# The list is a series of programs that are tried (see util/helpers/lint.d
-# and util/helpers/pretty_print.d) in order until one script detects
-# an available program and then it is used for the task.
-# To run programs XX, then falling back to YY when XX is not available, use
-# LINT_LANG="XX YY"
-# To run XX and also run YY if both are available, falling back to XX
-# and then falling back further to YY, use
-# LINT_LANG="XX+YY XX YY"
-# To completely disable
-# LINT_LANG=""
-LINT_CSS="prettycss"
-LINT_JS="jslint jsl"
-LINT_JSON="jslint"
-LINT_PHP="cli"
-
-# Same goes for the pretty printers
-PRETTY_CSS="prettycss"
-PRETTY_MARKDOWN="unexpand"
-PRETTY_PHP="phpbeautifier"
-
-# Lint command-line options for various language/program pairs
-LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
-LINT_JS_JSL_OPTIONS="-nologo -nofilelisting -nosummary -process"
-LINT_JS_JSLINT_OPTIONS=""
-LINT_JSON_JSLINT_OPTIONS=""
-LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
-
-# Pretty printing command-line options
-PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
-PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
-
-# Provide the ability to override the above config with your own values
-if [ -f util/config/bare_repo_setup ]; then
-	. util/config/bare_repo_setup
-fi
-
-# Detect if COLOR=auto and if we are on a tty
-if [ "$COLOR" == "auto" ]; then
-	if [ -t 0 ]; then
-		COLOR="yes"
-	else
-		COLOR="no"
-	fi
-fi
-
-# If COLOR is "no", clear out all colors
-if [ "$COLOR" == "no" ]; then
-	unset printenv | grep -o "^COLOR_[^=]"
-fi
 
 # Write out a debug message to stderr if debug mode enabled
 function debug() {
@@ -137,7 +73,7 @@ function get_file_type() {
 # Returns a positive result (exit code 0) if we are currently in a
 # git submodule.  Based off https://gist.github.com/sehe/1208393
 function is_submodule() {
-	local CHILD_DIR PARENT_DIR MODULE_PATH
+	local CHILD_DIR PARENT_DIR MODULE_PATH FULL_MODULE_PATH
 
 	# Get the root of this repository
 	CHILD_DIR="$(git rev-parse --show-toplevel)"
@@ -156,9 +92,11 @@ function is_submodule() {
 	# List all submodules in parent.  Careful with the subshells
 	while read MODULE_PATH; do
 		# Get the full path to the module
-		MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
+		FULL_MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
 
-		if [ "$MODULE_PATH" != "$CHILD_DIR" ]; then
+		if [ "$FULL_MODULE_PATH" != "$CHILD_DIR" ]; then
+			# This variable is NOT local
+			SUBMODULE_PATH="$MODULE_PATH"
 			return 0 # Affirmative
 		fi
 	done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
@@ -172,10 +110,8 @@ function is_submodule() {
 # Does NOT remove . or .. from paths.  Does not consolidate multiple slashes
 # into a single slash.
 # Echos the result with quotes.
-# Usage:  OLD_DIR="$(pwd)"
-#         cd "$(dirname "$0")"/../..
-#         . util/bin/bare_repo_setup
-#         FILES="$(resolve_paths "$OLD_DIR" ${1+"$@"})"
+# Usage:  . "$(dirname "$0")"/bare_repo_setup    # Set STARTING_DIR
+#         FILES="$(resolve_paths "$STARTING_DIR" ${1+"$@"})"
 # Parameters:  DirectoryFromWhence FilenameOrPath
 function resolve_path() {
 	local WHENCE="$1" # Directory that we use for resolution
@@ -394,3 +330,98 @@ function test_for_program() {
 
 	return 1
 }
+
+# Go to the root of the repository we with to act upon
+STARTING_DIR="$(pwd)"
+cd "$(dirname "$BASH_SOURCE")" # Go to bare_repo_setup
+cd "$(git rev-parse --show-toplevel)" # Go to the top of the repository
+SUBMODULE_PATH=""
+
+if ! is_submodule; then
+	TOOL_DIR="util"
+	TARGET_DIR="$(pwd)"
+	LOCAL_DIR="$(pwd)/local"
+else
+	TOOL_DIR="${SUBMODULE_PATH}/util"
+	cd ..
+	cd "$(git rev-parse --show-toplevel)" # Up to the root of the real repo
+	TARGET_DIR="$(pwd)"
+	LOCAL_DIR="$(pwd)/local"
+fi
+
+# Add node programs to the path
+if [ -d "node_modules/.bin" ]; then
+	PATH="$(pwd)/node_modules/.bin;$PATH"
+fi
+
+# Debugging mode - lots of useful debug information gets shown
+# when you change this to 1
+: ${DEBUG:=0}
+
+# Enable colors - you can use "yes" for always use colors, "no" to never use
+# colors, or "auto" for them to be automatically applied if using a terminal
+: ${COLOR:="auto"}
+
+# Directories to ignore for ctags, etags, pretty printing, lint checking
+# Include trailing slash
+IGNORE_DIRS="3rd_party/ node_modules/ vendor/"
+
+# Show messages in pretty colors.  Change or remove colors here.
+COLOR_LINT_ERROR="\e[1;31m" # Bright red
+COLOR_LINT_FILENAME="\e[1;33m" # Bright yellow
+COLOR_PRETTY_ERROR="\e[1;31m" # Bright red
+COLOR_PRETTY_FILENAME="\e[1;33m" # Bright yellow
+COLOR_PRETTY_MESSAGE="\e[32m" # Green
+COLOR_RESET="\e[m" # Reset
+
+# Lint and pretty printer programs to use, by language.
+# The list is a series of programs that are tried (see util/helpers/lint.d
+# and util/helpers/pretty_print.d) in order until one script detects
+# an available program and then it is used for the task.
+# To run programs XX, then falling back to YY when XX is not available, use
+# LINT_LANG="XX YY"
+# To run XX and also run YY if both are available, falling back to XX
+# and then falling back further to YY, use
+# LINT_LANG="XX+YY XX YY"
+# To completely disable
+# LINT_LANG=""
+LINT_CSS="prettycss"
+LINT_JS="jslint jsl"
+LINT_JSON="jslint"
+LINT_PHP="cli"
+
+# Same goes for the pretty printers
+PRETTY_CSS="prettycss"
+PRETTY_MARKDOWN="unexpand"
+PRETTY_PHP="phpbeautifier"
+
+# Lint command-line options for various language/program pairs
+LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
+LINT_JS_JSL_OPTIONS="-nologo -nofilelisting -nosummary -process"
+LINT_JS_JSLINT_OPTIONS=""
+LINT_JSON_JSLINT_OPTIONS=""
+LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
+
+# Pretty printing command-line options
+PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
+PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
+
+# Provide the ability to override the above config with your own values
+if [ -f util/config/bare_repo_setup ]; then
+	. util/config/bare_repo_setup
+fi
+
+# Detect if COLOR=auto and if we are on a tty
+if [ "$COLOR" == "auto" ]; then
+	if [ -t 0 ]; then
+		COLOR="yes"
+	else
+		COLOR="no"
+	fi
+fi
+
+# If COLOR is "no", clear out all colors
+if [ "$COLOR" == "no" ]; then
+	unset printenv | grep -o "^COLOR_[^=]"
+fi
+

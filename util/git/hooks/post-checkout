@@ -1,4 +1,6 @@
 #!/bin/bash
-
-. util/bin/bare_repo_setup
+#
+# When executed by git, this script always starts in the top of the
+# repository
+. "$(dirname "$0")/../../bin/bare_repo_setup"
 run_all_scripts util/git/post-checkout.d/

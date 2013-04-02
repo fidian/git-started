@@ -8,8 +8,6 @@ function lint_error() {
 }
 
 FILE="$1"
-OLD_DIR="$(pwd)"
-cd "$(dirname "$0")"/../..
-. util/bin/bare_repo_setup
-FILE="$(resolve_path "$OLD_DIR" "$FILE")"
+. "$(dirname "$0")/bare_repo_setup"
+FILE="$(resolve_path "$STARTING_DIR" "$FILE")"
 run_helpers "LINT" "lint_check.d" "$FILE"
