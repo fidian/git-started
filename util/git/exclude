@@ -20,8 +20,8 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
-# Vim backups
-*.swp
+# Vim backups, avoiding SWF
+*.sw[g-p]
 
 # Generic backup files
 *.bak
