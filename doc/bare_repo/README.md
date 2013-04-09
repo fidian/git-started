@@ -3,11 +3,13 @@ Bare Repository
 
 Are you tired of setting up pretty printers and lint checkers for your project, over and over?  Me too.  You can now merge this project into yours and it will set up git hooks that do this sort of thing for you.  In case your files are not covered by our scripts, the code is extensible and you merely create additional files in the right places to enable support for additional file types and coding styles.
 
+It currently works really well for Linux projects.  I am working towards making it run smoothly on a Mac and would happily accept patches for Cygwin, Mac and other platforms.  It would also be nifty to have this repository work as a submodule, so work that advances that goal would also be extremely welcome.
+
 
 How To Include In Your Project
 ==============================
 
-1.  Use git and a Linux-based environment.  This may work with cygwin, but that's untested.  It relies heavily on bash.
+1.  Use git and a Linux-based environment.  This may work with cygwin, but that's untested.  It relies heavily on bash and several tools that are typically found in the `coreutils` package.
 
 2.  Create a repository for your project.  _Don't clone this repository!_  It won't be what you need in the end.  If you already have a repository created, you can safely skip this step.
 

@@ -131,16 +131,52 @@ function get_file_type() {
 	fi
 
 	echo "$TYPE"
-	return 0;
+	return 0
 }
 
-# Resolve paths to a directory
-# Echos the result with quotes
+# Returns a positive result (exit code 0) if we are currently in a
+# git submodule.  Based off https://gist.github.com/sehe/1208393
+function is_submodule() {
+	local CHILD_DIR PARENT_DIR MODULE_PATH
+
+	# Get the root of this repository
+	CHILD_DIR="$(git rev-parse --show-toplevel)"
+
+	if [ -z "$CHILD_DIR" ]; then
+		return 1 # Negative
+	fi
+
+	# Get the root of the parent repository
+	PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
+
+	if [ -z "$PARENT_DIR" ]; then
+		return 1 # Negative
+	fi
+
+	# List all submodules in parent.  Careful with the subshells
+	while read MODULE_PATH; do
+		# Get the full path to the module
+		MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
+
+		if [ "$MODULE_PATH" != "$CHILD_DIR" ]; then
+			return 0 # Affirmative
+		fi
+	done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
+
+	return 1 # Negative
+}
+
+# Resolve paths based on an original location.  Useful for figuring out
+# what files were requested to be specified when running command-line
+# tools.
+# Does NOT remove . or .. from paths.  Does not consolidate multiple slashes
+# into a single slash.
+# Echos the result with quotes.
 # Usage:  OLD_DIR="$(pwd)"
 #         cd "$(dirname "$0")"/../..
 #         . util/bin/bare_repo_setup
 #         FILES="$(resolve_paths "$OLD_DIR" ${1+"$@"})"
-# ParameterS:  DirectoryFromWhence FilenameOrPath
+# Parameters:  DirectoryFromWhence FilenameOrPath
 function resolve_path() {
 	local WHENCE="$1" # Directory that we use for resolution
 	local FILE="$2" # Relative or absolute file/path
@@ -215,7 +251,7 @@ function run_helpers() {
 	fi
 
 	local FILE_TYPE="$(get_file_type "$TARGET")"
-	local CONFIGS_VAR_NAME="${PREFIX}_${FILE_TYPE^^}"
+	local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
 	local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS RESULT FULL_COMMAND
 	eval "CONFIGS=\$$CONFIGS_VAR_NAME"
 	HELPER_DIR="util/helpers/${HELPER_DIR}/${FILE_TYPE}"
@@ -293,18 +329,19 @@ function run_helpers() {
 
 
 # Returns information about a file as a string
-# Result:  MD5 SizeInBytes UserName:GroupName AccessMode FileType
+# Result:  MD5 Mode User:Group LastMod Size
 function stat_file() {
 	local FN="$1"
-	md5sum "$FN" | cut -b 1-32 | tr -d "\n"
-	/usr/bin/stat --format="%s %U:%G %A %F" "$FN"
+	git hash-object "$FN" | tr -d "\n"
+	/usr/bin/stat --format=" %f%a %u:%g %Y %s" "$FN" 2>/dev/null || \
+	stat -f " %p %u:%g %m %z" "$FN"
 }
 
 # Create a temporary file and echo out the name
 function temporary_file() {
 	if test_for_program mktemp; then
 		debug "temporary_file mktemp"
-		mktemp
+		mktemp 2> /dev/null || mktemp -t bare_repo
 		return 0
 	fi
 	

@@ -5,57 +5,214 @@
 cd "$(dirname "$0")"/../..
 . util/bin/bare_repo_setup
 
-ERRORS=0
-WARNINGS=0
+FAILURES=0
+TESTS=0
 
-function ERROR() {
-	echo "Error:  $1"
-	: $((ERRORS++))
+function TEST() {
+	printf "%s" "$1: "
+	: $((TESTS++))
 }
 
-function WARNING() {
-	echo "Warning:  $1"
-	: $((WARNINGS++))
+function PASS() {
+	echo "ok"
+}
+
+function FAIL() {
+	echo "FAIL"
+	echo " ****** $1"
+	: $((FAILURES++))
 }
 
 
-for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././super.hard/path.to/understand.me:me; do
+#
+# file_extension
+#
+for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././dir.name/exe.txt/file.me:me; do
 	EXPECTED="${FILE##*:}"
 	INPUT="${FILE%:*}"
+	TEST "file_extension \"$INPUT\" = \"$EXPECTED\""
 	ACTUAL="$(file_extension "$INPUT")"
 
-	if [ "$ACTUAL" != "$EXPECTED" ]; then
-		ERROR "file_extension \"$INPUT\" results in \"$ACTUAL\", not \"$EXPECTED\""
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
 	fi
 done
 
+
+#
+# get_file_type
+#
 for FILE in a.css:css b.js:js c.html:html cc.htm:html d.php:php dd.inc:php e.txt:unknown; do
 	EXPECTED="${FILE##*:}"
 	INPUT="${FILE%:*}"
+	TEST "get_file_type \"$INPUT\" = \"$EXPECTED\""
 	ACTUAL="$(get_file_type "$INPUT")"
 
-	if [ "$ACTUAL" != "$EXPECTED" ]; then
-		ERROR "get_file_type \"$INPUT\" results in \"$ACTUAL\", not \"$EXPECTED\""
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
 	fi
 done
 
+
+#
+# is_submodule
+#
+TEST "is_submodule"
+# Tests to write
+# /root - false
+# /root/sub - false
+# /root/root - true
+# /root/sub/root - true
+# /root/root/sub - true
+# /root/sub/root/sub - true
+FAIL "no tests exist"
+
+
+#
+# resolve_path
+#
+for FILE in /a,b:/a/b /c,d/e:/c/d/e f/,g/:f//g/ h/i,/j/k:/j/k; do
+	EXPECTED="${FILE##*:}"
+	INPUT="${FILE%:*}"
+	DIRNAME="${INPUT%,*}"
+	FILENAME="${INPUT##*,}"
+	TEST "resolve_path \"$DIRNAME\" \"$FILENAME\" = \"$EXPECTED\""
+	ACTUAL="$(resolve_path "$DIRNAME" "$FILENAME")"
+
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
+	fi
+done
+
+
+#
+# run_all_scripts
+#
+TEST "run_all_scripts"
+# Tests to write
+# Empty directory = success
+# First script fails = fail and stop running more
+# Second script fails = fail and stop running more
+# Last script fails = fail and stop running more
+# One script passes = success
+# Multiple scripts pass = success
+# Confirm environment is reset
+# Confirm subdirectories are not scanned
+# Confirm files in local config override and are injected properly
+FAIL "no tests exist"
+
+
+#
+# run_helpers
+#
+TEST "run_helpers"
+# Tests to write
+# Ensure the variable prefix is used
+# Ensure helper directory is used (no dir, empty dir, multiple files)
+# Ensure files are executed in the right order
+# Check that local overrides are applied or inserted
+# Check that the original filename isn't altered?
+# Check that the target exists if one is specified
+# If no target, check that the original is used
+FAIL "no tests exist"
+
+
+#
+# stat_file
+#
+TEST "stat_file temporary_file"
+# The "stat" of a file should change if the MD5 (content), size, owner,
+# group, or mode changes.  If there are other things to check that would be
+# tracked by git, then those too should be checked.
+# This should return a single line describing a file.
+FN1="$(temporary_file)"
+FN2="$(temporary_file)"
+if [ -z "$FN1" ] || [ -z "$FN2" ] || [ "$FN1" == "$FN2" ]; then
+	FAIL "test failed because temporary_file routine does not work"
+else
+	PASS
+
+	echo "Here is some content" >> $FN1
+	chmod a-w "$FN1"
+	sleep 2 # Guarantee timestamp mismatches, even on FAT-based systems
+
+	TEST "stat_file non-empty string"
+	STAT1="$(stat_file "$FN1")"
+	if [ -z "$STAT1" ]; then
+		FAIL "Empty sting returned for stat"
+	else
+		PASS
+	fi
+
+	TEST "stat_file different mode"
+	cp -p "$FN1" "$FN2"
+	chmod a+w "$FN2"
+	if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
+		FAIL "File mode has changed"
+	else
+		PASS
+	fi
+
+	TEST "stat_file different timestamp"
+	echo "Here is some content" >> $FN2
+	if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
+		FAIL "timestamps are different"
+	else
+		PASS
+	fi
+
+	TEST "stat_file same"
+	cp -p "$FN1" "$FN2"
+	if [ "$(stat_file "$FN2")" != "$STAT1" ]; then
+		FAIL "Everything is the same and this should match"
+	else
+		PASS
+	fi
+fi
+
+
+#
+# temporary_file
+#
+TEST "temporary_file"
 FN="$(temporary_file)"
 if [ -z "$FN" ]; then
-	ERROR "temporary_file did not return a filename"
+	FAIL "no filename returned"
 elif [ ! -f "$FN" ]; then
-	ERROR "temporary_file returned \"$FN\" but did not create the file"
+	FAIL "file was not created"
 else
+	PASS
 	rm "$FN"
 fi
 
-if test_for_program totally_unexpected_and_invalid_program_we_hope; then
-	ERROR "test_for_program is wrongly detecting a program that does not exist"
-fi
-if ! test_for_program ls; then
-	ERROR "test_for_program can not detect the presence of \"ls\""
+
+#
+# test_for_program
+#
+TEST "test_for_program miss"
+if ! test_for_program totally_unexpected_and_invalid_program_we_hope; then
+	PASS
+else
+	FAIL "says bad program name exists"
 fi
 
+TEST "test_for_program hit"
+if test_for_program ls; then
+	PASS
+else
+	FAIL "ls was not found"
+fi
+
+
+#
+# Done!
+#
 echo "Tests complete"
 echo ""
-echo "Warnings: $WARNINGS"
-echo "Errors: $ERRORS"
+echo "Failed $FAILURES out of $TESTS tests"
