@@ -63,7 +63,7 @@ LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
 
 # Pretty printing command-line options
 PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
-PRETTY_JS_JSBEAUTIFY_OPTIONS="--indent-with-tabs --jslint-happy"
+PRETTY_JS_JSBEAUTIFY_OPTIONS="--indent-with-tabs --jslint-happy --brace-style=end-expand"
 PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
 
 # Provide the ability to override the above config with your own values
