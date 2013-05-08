@@ -14,6 +14,7 @@ fi
 TEMPFILE="$(temporary_file)"
 cp -p "$FILE" "$TEMPFILE"
 BEFORE="$(stat_file "$TEMPFILE")"
+debug "Pretty print before file stat: $BEFORE"
 util/bin/pretty_print "$TEMPFILE" "$FILE"
 RESULT=$?
 
@@ -26,6 +27,7 @@ fi
 
 # No errors detected.  See if file was changed.
 AFTER="$(stat_file "$TEMPFILE")"
+debug "Pretty print after file stat: $AFTER"
 
 if [ "$BEFORE" != "$AFTER" ]; then
 	cp -p "$TEMPFILE" "$FILE"

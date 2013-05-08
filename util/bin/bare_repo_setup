@@ -331,12 +331,13 @@ function run_helpers() {
 
 
 # Returns information about a file as a string
-# Result:  MD5 Mode User:Group LastMod Size
+# Result:  MD5 Mode User:Group Size
+# Does not log the last modification date - just info about the content
 function stat_file() {
 	local FN="$1"
 	git hash-object "$FN" | tr -d "\n"
-	/usr/bin/stat --format=" %f%a %u:%g %Y %s" "$FN" 2>/dev/null || \
-	stat -f " %p %u:%g %m %z" "$FN"
+	/usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || \
+	stat -f " %p %u:%g %z" "$FN"
 }
 
 # Create a temporary file and echo out the name
