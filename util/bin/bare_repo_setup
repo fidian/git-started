@@ -175,7 +175,7 @@ function is_submodule() {
 # into a single slash.
 # Echos the result with quotes.
 # Usage:  OLD_DIR="$(pwd)"
-#         cd "$(dirname "$0")"/../..
+#         cd "${0%/*}"/../..
 #         . util/bin/bare_repo_setup
 #         FILES="$(resolve_paths "$OLD_DIR" ${1+"$@"})"
 # Parameters:  DirectoryFromWhence FilenameOrPath

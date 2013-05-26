@@ -20,7 +20,7 @@ function pretty_error() {
 TARGET_FILE="$1"
 REAL_FILE="$2"
 OLD_DIR="$(pwd)"
-cd "$(dirname "$0")"/../..
+cd "${0%/*}"/../..
 . util/bin/bare_repo_setup
 TARGET_FILE="$(resolve_path "$OLD_DIR" "$TARGET_FILE")"
 

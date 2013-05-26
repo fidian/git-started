@@ -2,7 +2,7 @@
 # 
 # Ensure things are all correct
 
-cd "$(dirname "$0")"/../..
+cd "${0%/*}"/../..
 . util/bin/bare_repo_setup
 
 FAILURES=0
