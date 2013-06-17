@@ -47,12 +47,14 @@ LINT_CSS="prettycss"
 LINT_JS="jslint jsl"
 LINT_JSON="jslint"
 LINT_PHP="cli"
+LINT_YAML=""
 
 # Same goes for the pretty printers
 PRETTY_CSS="prettycss"
 PRETTY_JS=""  # js-beautify conflicts with jslint
 PRETTY_MARKDOWN="unexpand"
 PRETTY_PHP="phpbeautifier"
+PRETTY_YAML="unexpand"
 
 # Lint command-line options for various language/program pairs
 LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
