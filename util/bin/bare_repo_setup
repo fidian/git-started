@@ -51,7 +51,7 @@ LINT_YAML=""
 
 # Same goes for the pretty printers
 PRETTY_CSS="prettycss"
-PRETTY_JS=""  # js-beautify conflicts with jslint
+PRETTY_JS="unexpand"
 PRETTY_MARKDOWN="unexpand"
 PRETTY_PHP="phpbeautifier"
 PRETTY_YAML="unexpand"
