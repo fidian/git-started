@@ -54,7 +54,7 @@ PRETTY_CSS="prettycss"
 PRETTY_JS="unexpand"
 PRETTY_MARKDOWN="unexpand"
 PRETTY_PHP="phpbeautifier"
-PRETTY_YAML="unexpand"
+PRETTY_YAML="expand"
 
 # Lint command-line options for various language/program pairs
 LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
