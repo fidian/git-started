@@ -1,5 +1,5 @@
-Bare Repository
-===============
+Git Started - A Boilerplate for Git
+===================================
 
 Are you tired of setting up pretty printers and lint checkers for your project, over and over?  Me too.  You can now merge this project into yours and it will set up git hooks that do this sort of thing for you.  In case your files are not covered by our scripts, the code is extensible and you merely create additional files in the right places to enable support for additional file types and coding styles.
 
