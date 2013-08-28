@@ -110,7 +110,7 @@ function is_submodule() {
 # Does NOT remove . or .. from paths.  Does not consolidate multiple slashes
 # into a single slash.
 # Echos the result with quotes.
-# Usage:  . "$(dirname "$0")"/bare_repo_setup    # Set STARTING_DIR
+# Usage:  . "${0%/*}"/bare_repo_setup    # Set STARTING_DIR
 #         FILES="$(resolve_paths "$STARTING_DIR" ${1+"$@"})"
 # Parameters:  DirectoryFromWhence FilenameOrPath
 function resolve_path() {
@@ -265,12 +265,13 @@ function run_helpers() {
 
 
 # Returns information about a file as a string
-# Result:  MD5 Mode User:Group LastMod Size
+# Result:  MD5 Mode User:Group Size
+# Does not log the last modification date - just info about the content
 function stat_file() {
 	local FN="$1"
 	git hash-object "$FN" | tr -d "\n"
-	/usr/bin/stat --format=" %f%a %u:%g %Y %s" "$FN" 2>/dev/null || \
-	stat -f " %p %u:%g %m %z" "$FN"
+	/usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || \
+	stat -f " %p %u:%g %z" "$FN"
 }
 
 # Create a temporary file and echo out the name
@@ -333,7 +334,7 @@ function test_for_program() {
 
 # Go to the root of the repository we with to act upon
 STARTING_DIR="$(pwd)"
-cd "$(dirname "$BASH_SOURCE")" # Go to bare_repo_setup
+cd "${BASH_SOURCE%/*}" # Go to bare_repo_setup
 cd "$(git rev-parse --show-toplevel)" # Go to the top of the repository
 SUBMODULE_PATH=""
 
@@ -389,11 +390,14 @@ LINT_CSS="prettycss"
 LINT_JS="jslint jsl"
 LINT_JSON="jslint"
 LINT_PHP="cli"
+LINT_YAML=""
 
 # Same goes for the pretty printers
 PRETTY_CSS="prettycss"
+PRETTY_JS="jsbeautify unexpand"
 PRETTY_MARKDOWN="unexpand"
 PRETTY_PHP="phpbeautifier"
+PRETTY_YAML="expand"
 
 # Lint command-line options for various language/program pairs
 LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
@@ -404,6 +408,7 @@ LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
 
 # Pretty printing command-line options
 PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
+PRETTY_JS_JSBEAUTIFY_OPTIONS="--indent-with-tabs --jslint-happy --brace-style=end-expand"
 PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
 
 # Provide the ability to override the above config with your own values

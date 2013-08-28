@@ -2,7 +2,7 @@
 # 
 # Ensure things are all correct
 
-. "$(dirname "$0")/bare_repo_setup"
+. "${0%/*}"/bare_repo_setup
 
 FAILURES=0
 TESTS=0

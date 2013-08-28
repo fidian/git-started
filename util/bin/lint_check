@@ -8,6 +8,6 @@ function lint_error() {
 }
 
 FILE="$1"
-. "$(dirname "$0")/bare_repo_setup"
+. "${0%/*}"/bare_repo_setup
 FILE="$(resolve_path "$STARTING_DIR" "$FILE")"
 run_helpers "LINT" "lint_check.d" "$FILE"

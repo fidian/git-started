@@ -3,7 +3,7 @@ Bare Repository
 
 Are you tired of setting up pretty printers and lint checkers for your project, over and over?  Me too.  You can now merge this project into yours and it will set up git hooks that do this sort of thing for you.  In case your files are not covered by our scripts, the code is extensible and you merely create additional files in the right places to enable support for additional file types and coding styles.
 
-It currently works really well for Linux projects.  I am working towards making it run smoothly on a Mac and would happily accept patches for Cygwin, Mac and other platforms.  It would also be nifty to have this repository work as a submodule, so work that advances that goal would also be extremely welcome.
+It currently works really well for Linux projects.  I also have it working natively on Mac (OS X) and would happily accept patches for Cygwin and other platforms.
 
 
 Submodule vs. Merged

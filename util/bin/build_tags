@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. "$(dirname "$0")/bare_repo_setup"
+. "${0%/*}"/bare_repo_setup
 
 EXCLUDE="--exclude=.git"
 
