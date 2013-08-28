@@ -1,1 +1,1 @@
-doc/bare_repo/LICENSE.md
+doc/git-started/LICENSE.md

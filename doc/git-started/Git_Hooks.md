@@ -1,7 +1,7 @@
 Git Hooks
 =========
 
-The hooks that the `bare_repo` repository sets up may get a little confusing, especially with automatic lint checking and pretty printing happening.  To help with debugging, this will walk you through the steps that happen.
+The hooks that the `git-started` repository sets up may get a little confusing, especially with automatic lint checking and pretty printing happening.  To help with debugging, this will walk you through the steps that happen.
 
 * The user wishes to commit changes, using `git commit myFile.js`.
 * Git will use its `.git/hooks/pre-commit` script (added by the `util/bin/setup_repository` script).

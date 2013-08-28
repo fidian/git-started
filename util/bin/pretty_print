@@ -19,7 +19,7 @@ function pretty_error() {
 
 TARGET_FILE="$1"
 REAL_FILE="$2"
-. "${0%/*}"/bare_repo_setup
+. "${0%/*}"/git-started-setup
 TARGET_FILE="$(resolve_path "$STARTING_DIR" "$TARGET_FILE")"
 
 if [ ! -z "$REAL_FILE" ]; then

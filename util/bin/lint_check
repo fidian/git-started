@@ -8,6 +8,6 @@ function lint_error() {
 }
 
 FILE="$1"
-. "${0%/*}"/bare_repo_setup
+. "${0%/*}"/git-started-setup
 FILE="$(resolve_path "$STARTING_DIR" "$FILE")"
 run_helpers "LINT" "lint_check.d" "$FILE"

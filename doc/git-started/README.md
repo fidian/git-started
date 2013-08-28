@@ -19,7 +19,7 @@ You can include all of the benefits of this toolset either merged into your repo
  * There are several directories that exist in this project that are designed to start structuring your software in a good way, but these only help if you merge the commits.
  * A submodule lets you put these git hooks and code anywhere in your project you would like.
  * There is more setup involved with a submodule in order to let you customize the scripts.
- * Code review tools will audit the bare_repo commits as though they were your own when merging in the code.
+ * Code review tools will audit the git-started commits as though they were your own when merging in the code.
 
 
 How To Include In Your Project
@@ -44,10 +44,10 @@ First, go to the [GitHub project] and fork it.  This way you can later customize
 
 	# Add your fork as a submodule - we are putting the files in
 	# the hidden directory .hooks to hide them
-	git submodule add https://github.com/fidian/bare_repo.git .hooks
+	git submodule add https://github.com/fidian/git-started.git .hooks
 
 	# Commit
-	git commit -m 'Adding bare_repo'
+	git commit -m 'Adding git-started'
 
 Updates from here are pretty easy.  First you need to merge commits into your fork of the project, then you update the submodule.
 
@@ -55,11 +55,11 @@ Updates from here are pretty easy.  First you need to merge commits into your fo
 	cd your_repository/.hooks
 
 	# Add the remote, in case you did not have this yet
-	git remote add bare_repo https://github.com/fidian/bare_repo.git
+	git remote add git-started https://github.com/fidian/git-started.git
 
 	# Merge in upstream changes
-	git fetch bare_repo
-	git merge bare_repo/master
+	git fetch git-started
+	git merge git-started/master
 
 	# Push out to your fork
 	git push
@@ -76,38 +76,38 @@ This adds the commit history of this project into your repository as though the 
 	cd your_repository
 	
 	# It is best to work in branches so you can undo things easier
-	git checkout -b bare_repo_branch
+	git checkout -b git-started-branch
 	
-	# Add the bare_repo repository as a remote
-	git remote add bare_repo https://github.com/fidian/bare_repo.git
+	# Add the git-started repository as a remote
+	git remote add git-started https://github.com/fidian/git-started.git
 	
-	# Get the commit history from bare_repo
-	git fetch bare_repo
+	# Get the commit history from git-started
+	git fetch git-started
 	
-	# Merge bare_repo's master into your working branch
-	git merge bare_repo/master
+	# Merge git-started's master into your working branch
+	git merge git-started/master
 	
 	# Handle merge conflicts and finish the commit if you have problems
 	# ... work work work ...
 	
-	# Then you are ready to merge bare_repo_branch into your repository
+	# Then you are ready to merge git-started-branch into your repository
 	git checkout master
-	git merge bare_repo_branch
-	git branch -d bare_repo_branch
+	git merge git-started-branch
+	git branch -d git-started-branch
 	git pull
 	git push
 
 Upgrades are essentially the same thing.  Here's the abbreviated version.
 
 	cd your_repository
-	git checkout -b bare_repo_branch
-	git fetch bare_repo
+	git checkout -b git-started-branch
+	git fetch git-started
 	# If that fails, use "git remote add" and then fetch again
-	git merge bare_repo/master
+	git merge git-started/master
 	# Handle merge conflicts here
 	git checkout master
-	git merge bare_repo_branch
-	git branch -d bare_repo_branch
+	git merge git-started-branch
+	git branch -d git-started-branch
 	git pull
 	git push
 
@@ -138,11 +138,11 @@ Customization
 
 This repository is intended to augment yours and to get some tedious tasks out of the way.  Its goal is to let you extend its functionality quickly and easily.  You can tie into many different points in order to configure, extend and override actions that are performed.
 
-We intend to let you extend everything without having to modify any of the files in this repository.  That way you can follow the upgrade process to get updates and your changes and scripts won't be overwritten.  To give you this flexibility, we ask that you don't modify any files that are part of bare_repo except the symbolic links to README.md and LICENSE in the root.  It just makes the upgrade process easier.  If you need to tweak a script to allow you to hook in custom functionality, how about logging an issue?
+We intend to let you extend everything without having to modify any of the files in this repository.  That way you can follow the upgrade process to get updates and your changes and scripts won't be overwritten.  To give you this flexibility, we ask that you don't modify any files that are part of git-started except the symbolic links to README.md and LICENSE in the root.  It just makes the upgrade process easier.  If you need to tweak a script to allow you to hook in custom functionality, how about logging an issue?
 
 
-util/config/bare_repo_setup
----------------------------
+util/config/git-started-setup
+-----------------------------
 
 This bash shell script is executed with every script.  It's a good spot to put settings that apply to everything on your project.  Here's the current settings:
 
@@ -203,6 +203,6 @@ Setup scripts to run in order to prepare your repository correctly.  This can ch
 License Information
 ===================
 
-This project is licensed under a MIT license with a non-advertising clause.  This license applies **ONLY** to the files that are a part of the bare_repo repository and does not extend into your project, even though your files are intended to be mixed with this repository.  See the [GitHub project] for information about file histories and to help determine what files come from the bare_repo repository.
+This project is licensed under a MIT license with a non-advertising clause.  This license applies **ONLY** to the files that are a part of the git-started repository and does not extend into your project, even though your files are intended to be mixed with this repository.  See the [GitHub project] for information about file histories and to help determine what files come from the git-started repository.
 
-[GitHub Project]: https://github.com/fidian/bare_repo/
+[GitHub Project]: https://github.com/fidian/git-started/

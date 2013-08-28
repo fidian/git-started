@@ -4,7 +4,7 @@ Several of these directories do not yet exist, but support for them is built int
 
 * `bin/` - Command line tools that you write.
 * `doc/` - Documentation.  You do write documentation, right?
-	* `doc/bare_repo/` - Documentation for this repository.  I need to put it somewhere.
+	* `doc/git-started/` - Documentation for this repository.  I need to put it somewhere.
 * `lib/` - Your code should go in here.  Classes, procedural code, etc.
 * `local/` - Local settings and configurations that should not ever get committed to a repository.
 * `node_modules/` - Modules installed with `npm` for node.js projects.

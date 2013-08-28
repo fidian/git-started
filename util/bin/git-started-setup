@@ -6,15 +6,15 @@
 #
 #
 #   STARTING_DIR = The directory where the user started the command
-#   TOOL_DIR = The 'util/' directory in bare_repo, relative
+#   TOOL_DIR = The 'util/' directory in git-started, relative
 #   TARGET_DIR = The root directory of the repository to act upon
 #   LOCAL_DIR = The 'local/' directory to use, under TARGET_DIR
-#   SUBMODULE_PATH = Path to bare_repo as a submodule or empty string
+#   SUBMODULE_PATH = Path to git-started as a submodule or empty string
 #
 # There are many options that can be set in order to tweak the behavior.
 # Some options set up defaults, but you can override them through the command
 # line invocation as well as in a local config file in
-# util/config/bare_repo_setup
+# util/config/git-started-setup
 #
 # Command line override example for the DEBUG setting:
 #    DEBUG=1 util/bin/setup_repository
@@ -110,7 +110,7 @@ function is_submodule() {
 # Does NOT remove . or .. from paths.  Does not consolidate multiple slashes
 # into a single slash.
 # Echos the result with quotes.
-# Usage:  . "${0%/*}"/bare_repo_setup    # Set STARTING_DIR
+# Usage:  . "${0%/*}"/git-started-setup    # Set STARTING_DIR
 #         FILES="$(resolve_paths "$STARTING_DIR" ${1+"$@"})"
 # Parameters:  DirectoryFromWhence FilenameOrPath
 function resolve_path() {
@@ -278,7 +278,7 @@ function stat_file() {
 function temporary_file() {
 	if test_for_program mktemp; then
 		debug "temporary_file mktemp"
-		mktemp 2> /dev/null || mktemp -t bare_repo
+		mktemp 2> /dev/null || mktemp -t git-started
 		return 0
 	fi
 	
@@ -334,7 +334,7 @@ function test_for_program() {
 
 # Go to the root of the repository we with to act upon
 STARTING_DIR="$(pwd)"
-cd "${BASH_SOURCE%/*}" # Go to bare_repo_setup
+cd "${BASH_SOURCE%/*}" # Go to git-started-setup
 cd "$(git rev-parse --show-toplevel)" # Go to the top of the repository
 SUBMODULE_PATH=""
 
@@ -412,8 +412,8 @@ PRETTY_JS_JSBEAUTIFY_OPTIONS="--indent-with-tabs --jslint-happy --brace-style=en
 PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
 
 # Provide the ability to override the above config with your own values
-if [ -f util/config/bare_repo_setup ]; then
-	. util/config/bare_repo_setup
+if [ -f util/config/git-started-setup ]; then
+	. util/config/git-started-setup
 fi
 
 # Detect if COLOR=auto and if we are on a tty

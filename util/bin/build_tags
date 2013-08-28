@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. "${0%/*}"/bare_repo_setup
+. "${0%/*}"/git-started-setup
 
 EXCLUDE="--exclude=.git"
 

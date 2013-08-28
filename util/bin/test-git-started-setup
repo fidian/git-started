@@ -2,7 +2,7 @@
 # 
 # Ensure things are all correct
 
-. "${0%/*}"/bare_repo_setup
+. "${0%/*}"/git-started-setup
 
 FAILURES=0
 TESTS=0

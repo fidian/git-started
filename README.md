@@ -1,1 +1,1 @@
-doc/bare_repo/README.md
+doc/git-started/README.md

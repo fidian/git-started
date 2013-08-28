@@ -1,6 +1,6 @@
 #!/bin/bash
 
-. "${0%/*}"/bare_repo_setup
+. "${0%/*}"/git-started-setup
 
 GIT_DIR_UID="$(stat -c %u .git/ 2> /dev/null || stat -f "%u" .git/)"
 GIT_DIR_USER="$(stat -c %U .git/ 2> /dev/null || stat -f "%Su" .git/)"
