@@ -1,1 +1,1 @@
-doc/bare_repo/LICENSE
+doc/bare_repo/LICENSE.md
