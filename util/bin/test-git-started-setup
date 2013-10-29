@@ -7,19 +7,19 @@
 FAILURES=0
 TESTS=0
 
-function TEST() {
-	printf "%s" "$1: "
-	: $((TESTS++))
+function FAIL() {
+	echo "FAIL"
+	echo " ****** $1"
+	: $((FAILURES++))
 }
 
 function PASS() {
 	echo "ok"
 }
 
-function FAIL() {
-	echo "FAIL"
-	echo " ****** $1"
-	: $((FAILURES++))
+function TEST() {
+	printf "%s" "$1: "
+	: $((TESTS++))
 }
 
 
