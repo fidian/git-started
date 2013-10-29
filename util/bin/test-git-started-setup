@@ -82,7 +82,23 @@ done
 #
 # is_submodule
 #
-TEST "is_submodule"
+
+# First, create a test repository that has a specific directory structure
+# for testing
+TEMP_REPO="$(mktemp -d)"
+(
+	cd "$TEMP_REPO"
+	git init
+	echo "Test repo" > test.txt
+	git add test.txt
+	git commit -m "Initial commit"
+	mkdir dir
+	git submodule add ./ submodule
+	git submodule add ./ dir/submodule
+	mkdir submodule/dir
+	mkdir dir/submodule/dir
+) > /dev/null
+
 # Tests to write
 # /root - false
 # /root/sub - false
@@ -90,7 +106,25 @@ TEST "is_submodule"
 # /root/sub/root - true
 # /root/root/sub - true
 # /root/sub/root/sub - true
-FAIL "no tests exist"
+for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submodule/dir:true /dir/submodule/dir:true; do
+	EXPECTED="${DIR_RESULT##*:}"
+	INPUT="${DIR_RESULT%:*}"
+
+	TEST "is_submodule repo${INPUT}"
+
+	if (cd "${TEMP_REPO}${INPUT}"; is_submodule); then
+		ACTUAL="true"
+	else
+		ACTUAL="false"
+	fi
+
+	if [ "$ACTUAL" == "$EXPECTED" ]; then
+		PASS
+	else
+		FAIL "got \"$ACTUAL\""
+	fi
+done
+rm -rf "$TEMP_REPO"
 
 
 #
