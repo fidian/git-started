@@ -103,7 +103,7 @@ for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submod
 	EXPECTED="${DIR_RESULT##*:}"
 	INPUT="${DIR_RESULT%:*}"
 
-	TEST "is_submodule repo${INPUT}"
+	TEST "is_submodule repo${INPUT} = $EXPECTED"
 
 	if (cd "${TEMP_REPO}${INPUT}"; is_submodule); then
 		ACTUAL="true"
