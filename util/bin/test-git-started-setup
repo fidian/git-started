@@ -280,7 +280,7 @@ TEMP_DIR="$(mktemp -d)"
 		chmod 755 "$TEMP_DIR/$F"
 	done
 ) > /dev/null
-TEST "Working directory (git hooks + setup)"
+TEST "working directory (git hooks + setup)"
 
 # Git hooks use a method like this to determine which file to execute
 cat > "$TEMP_DIR/util/git/hooks/post-checkout" <<EOF
