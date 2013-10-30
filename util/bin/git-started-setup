@@ -134,17 +134,24 @@ function run_all_scripts() {
 	local DIR="$1"
 	shift
 
-	if [ ! -d "$DIR" ]; then
+	if [ ! -d "$DIR" ] && [ ! -d "./$SUBMODULE_PATH/$DIR" ]; then
 		debug "run_all_scripts '$DIR' no scripts to run"
 		# No directory, thus no scripts to run, thus success!
 		return 0
 	fi
 
 	while read FN; do
-		SCRIPT="$DIR/$FN"
+		# Lowest priority: submodule files
+		SCRIPT="./$SUBMODULE_PATH/$DIR/$FN"
 
-		if [ -f "local/$SCRIPT" ]; then
-			SCRIPT="local/$SCRIPT"
+		# Better: the files in the repository
+		if [ -f "$DIR/$FN" ]; then
+			SCRIPT="$DIR/$FN"
+		fi
+
+		# Best: the files in the local directory
+		if [ -f "local/$DIR/$FN" ]; then
+			SCRIPT="local/$DIR/FN"
 		fi
 
 		debug "run_all_scripts '$SCRIPT'"
@@ -161,7 +168,7 @@ function run_all_scripts() {
 			debug "run_all_scripts result $RESULT"
 			return $RESULT
 		fi
-	done < <(find "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
+	done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
 	debug "run_all_scripts all passed"
 	return 0
