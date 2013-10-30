@@ -13,6 +13,19 @@ function FAIL() {
 	: $((FAILURES++))
 }
 
+function MAKE_REPO() {
+	local TEMP_REPO
+	TEMP_REPO="$(mktemp -d)"
+	(
+		cd "$TEMP_REPO"
+		git init
+		echo "Test repo" > test.txt
+		git add test.txt
+		git commit -m "Initial commit"
+	) > /dev/null
+	echo "$TEMP_REPO"
+}
+
 function PASS() {
 	echo "ok"
 }
@@ -85,13 +98,9 @@ done
 
 # First, create a test repository that has a specific directory structure
 # for testing
-TEMP_REPO="$(mktemp -d)"
+TEMP_REPO="$(MAKE_REPO)"
 (
 	cd "$TEMP_REPO"
-	git init
-	echo "Test repo" > test.txt
-	git add test.txt
-	git commit -m "Initial commit"
 	mkdir dir
 	git submodule add ./ submodule
 	git submodule add ./ dir/submodule
@@ -265,48 +274,77 @@ fi
 # I will set up in the test.  Doing a "cd .git/hooks/../../bin" goes to the
 # bin directory, but ". .git/hooks/../../bin/file" will use util/bin.  To
 # Eliminate that problem, I use readlink for the git hooks.
-TEMP_DIR="$(mktemp -d)"
+TEMP_REPO="$(MAKE_REPO)"
 (
-	cd "$TEMP_DIR"
-	mkdir -p .git bin util/bin util/git/hooks
+	cd "$TEMP_REPO"
+	mkdir -p bin util/bin util/git/hooks
+	rm -rf .git/hooks
 	ln -s ../util/git/hooks .git/hooks
 	for F in bin/test_path util/bin/test_path; do
 		# git-started-setup uses a method like this to determine
 		# where its repository's root is located
-		echo "#!/bin/bash" > "$TEMP_DIR/$F"
-		echo "echo '$F'"
-		echo "cd \"\${BASH_SOURCE%/*}\"" >> "$TEMP_DIR/$F"
-		echo "pwd" >> "$TEMP_DIR/$F"
-		chmod 755 "$TEMP_DIR/$F"
+		echo "#!/bin/bash" > "$TEMP_REPO/$F"
+		echo "echo \"$F\"" >> "$TEMP_REPO/$F"
+		chmod 755 "$TEMP_REPO/$F"
 	done
 ) > /dev/null
 TEST "working directory (git hooks + setup)"
 
 # Git hooks use a method like this to determine which file to execute
-cat > "$TEMP_DIR/util/git/hooks/post-checkout" <<EOF
+cat > "$TEMP_REPO/util/git/hooks/post-checkout" <<EOF
 #!/bin/bash
 . "\$(readlink -f "\${0%/*}/../..")/bin/test_path"
 EOF
-chmod 755 "$TEMP_DIR/util/git/hooks/post-checkout"
-ACTUAL="$(cd "$TEMP_DIR"; .git/hooks/post-checkout)"
-EXPECTED="$TEMP_DIR/util/bin"
+chmod 755 "$TEMP_REPO/util/git/hooks/post-checkout"
+ACTUAL="$(cd "$TEMP_REPO"; .git/hooks/post-checkout)"
+EXPECTED="util/bin/test_path"
 if [ "$ACTUAL" == "$EXPECTED" ]; then
 	PASS
 else
 	FAIL "Expecting $EXPECTED but got $ACTUAL"
 fi
-rm -rf "$TEMP_DIR"
+rm -rf "$TEMP_REPO"
 
 
 #
 # This tests the ability for git-started to insert itself in a
 # repository either as a submodule or by being merged.
 #
+SOURCE="$(pwd)"
+TEST "submodule - pre-commit"
+TEMP_REPO="$(MAKE_REPO)"
+(
+	cd "$TEMP_REPO"
+	git submodule add "$SOURCE" "git-started"
+	git commit -m "Adding git-started"
+	git-started/util/bin/setup_repository
+	echo "NO""COMMIT" > test2.txt
+	git add test2.txt
+) > /dev/null
+if ( cd "$TEMP_REPO"; git commit -m "checking pre-commit hook" > /dev/null 2>&1 ); then
+	FAIL "the commit should have been blocked"
+else
+	PASS
+fi
+rm -rf "$TEMP_REPO"
 
-TEST "it works as a submodule"
-FAIL "no tests exists"
-TEST "it works when merged"
-FAIL "no tests exists"
+TEST "merged - pre-commit"
+TEMP_REPO="$(MAKE_REPO)"
+(
+	cd "$TEMP_REPO"
+	git remote add origin "$SOURCE"
+	git fetch origin
+	git merge -m 'auto merge' origin/master
+	util/bin/setup_repository
+	echo "NO""COMMIT" > test2.txt
+	git add test2.txt
+) > /dev/null 2>&1
+if ( cd "$TEMP_REPO"; git commit -m "checking pre-commit hook" > /dev/null 2>&1 ); then
+	FAIL "the commit should have been blocked"
+else
+	PASS
+fi
+rm -rf "$TEMP_REPO"
 
 #
 # Done!
