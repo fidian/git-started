@@ -1,1 +1,1 @@
-../doc/bare_repo/3rd_Party.md
+../doc/git-started/3rd_Party.md
