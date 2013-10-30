@@ -2,5 +2,5 @@
 #
 # When executed by git, this script always starts in the top of the
 # repository
-. "$(dirname "$0")/../../bin/git-started-setup"
+. "$(readlink -f "${0%/*}/../..")/bin/git-started-setup"
 run_all_scripts util/git/post-merge.d

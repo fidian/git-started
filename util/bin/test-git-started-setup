@@ -99,13 +99,6 @@ TEMP_REPO="$(mktemp -d)"
 	mkdir dir/submodule/dir
 ) > /dev/null
 
-# Tests to write
-# /root - false
-# /root/sub - false
-# /root/root - true
-# /root/sub/root - true
-# /root/root/sub - true
-# /root/sub/root/sub - true
 for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submodule/dir:true /dir/submodule/dir:true; do
 	EXPECTED="${DIR_RESULT##*:}"
 	INPUT="${DIR_RESULT%:*}"
@@ -264,6 +257,45 @@ else
 	FAIL "ls was not found"
 fi
 
+
+#
+# How the git hooks initially tie into our software
+#
+# This is a bit special as they are executed in an environment like what
+# I will set up in the test.  Doing a "cd .git/hooks/../../bin" goes to the
+# bin directory, but ". .git/hooks/../../bin/file" will use util/bin.  To
+# Eliminate that problem, I use readlink for the git hooks.
+TEMP_DIR="$(mktemp -d)"
+(
+	cd "$TEMP_DIR"
+	mkdir -p .git bin util/bin util/git/hooks
+	ln -s ../util/git/hooks .git/hooks
+	for F in bin/test_path util/bin/test_path; do
+		# git-started-setup uses a method like this to determine
+		# where its repository's root is located
+		echo "#!/bin/bash" > "$TEMP_DIR/$F"
+		echo "echo '$F'"
+		echo "cd \"\${BASH_SOURCE%/*}\"" >> "$TEMP_DIR/$F"
+		echo "pwd" >> "$TEMP_DIR/$F"
+		chmod 755 "$TEMP_DIR/$F"
+	done
+) > /dev/null
+TEST "Working directory (git hooks + setup)"
+
+# Git hooks use a method like this to determine which file to execute
+cat > "$TEMP_DIR/util/git/hooks/post-checkout" <<EOF
+#!/bin/bash
+. "\$(readlink -f "\${0%/*}/../..")/bin/test_path"
+EOF
+chmod 755 "$TEMP_DIR/util/git/hooks/post-checkout"
+ACTUAL="$(cd "$TEMP_DIR"; .git/hooks/post-checkout)"
+EXPECTED="$TEMP_DIR/util/bin"
+if [ "$ACTUAL" == "$EXPECTED" ]; then
+	PASS
+else
+	FAIL "Expecting $EXPECTED but got $ACTUAL"
+fi
+rm -rf "$TEMP_DIR"
 
 #
 # Done!
