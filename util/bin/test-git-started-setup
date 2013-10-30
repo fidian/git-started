@@ -297,6 +297,17 @@ else
 fi
 rm -rf "$TEMP_DIR"
 
+
+#
+# This tests the ability for git-started to insert itself in a
+# repository either as a submodule or by being merged.
+#
+
+TEST "it works as a submodule"
+FAIL "no tests exists"
+TEST "it works when merged"
+FAIL "no tests exists"
+
 #
 # Done!
 #
