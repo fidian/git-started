@@ -56,7 +56,7 @@ function file_extension() {
 # Echos out the file processing "submodule" or the file type for the given
 # incoming file
 function get_file_type() {
-    local TYPE="$(run_all_scripts helpers/file_detection.d "$1")"
+    local TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
     debug "get_file_type result '$TYPE'"
     
     if [ -z "$TYPE" ]; then

@@ -38,4 +38,4 @@ function setup_symlink() {
 	fi
 }
 
-run_all_scripts "helpers/setup.d"
+run_all_scripts "util/helpers/setup.d"
