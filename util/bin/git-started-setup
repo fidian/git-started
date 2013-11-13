@@ -21,24 +21,24 @@
 
 # Write out a debug message to stderr if debug mode enabled
 function debug() {
-	if [ "$DEBUG" -ne 0 ]; then
-		echo ${1+"$@"} > /dev/stderr
-	fi
+    if [ "$DEBUG" -ne 0 ]; then
+        echo ${1+"$@"} > /dev/stderr
+    fi
 }
 
 # Clear the current line
 function echo_clear_line() {
-	printf "\e[G\e[K"
+    printf "\e[G\e[K"
 }
 
 # Allow escape codes
 function echo_escape {
-	printf "%b\n" "$1"
+    printf "%b\n" "$1"
 }
 
 # Echo a prompt without a newline
 function echo_prompt() {
-	printf "%s" "$1"
+    printf "%s" "$1"
 }
 
 # Get the extension of a filename
@@ -46,62 +46,62 @@ function echo_prompt() {
 # and "some.dir.name/some/path.name.here" shows "here"
 # This does not use subshells
 function file_extension() {
-	local FN="${1##*/}" # Remove path, which might have periods
-	local BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
-	local EXTENSION="${FN:${#BASE}+1}"
-	debug "file_extension '$1' is '$EXTENSION'"
-	echo "$EXTENSION"
+    local FN="${1##*/}" # Remove path, which might have periods
+    local BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
+    local EXTENSION="${FN:${#BASE}+1}"
+    debug "file_extension '$1' is '$EXTENSION'"
+    echo "$EXTENSION"
 }
 
 # Echos out the file processing "submodule" or the file type for the given
 # incoming file
 function get_file_type() {
-	local TYPE="$(run_all_scripts ${TOOL_DIR}/helpers/file_detection.d "$1")"
-	debug "get_file_type result '$TYPE'"
-	
-	if [ -z "$TYPE" ]; then
-		# Failed to detect the type
-		debug "get_file_type returning 'unknown'"
-		echo "unknown"
-		return 1
-	fi
+    local TYPE="$(run_all_scripts ${TOOL_DIR}/helpers/file_detection.d "$1")"
+    debug "get_file_type result '$TYPE'"
+    
+    if [ -z "$TYPE" ]; then
+        # Failed to detect the type
+        debug "get_file_type returning 'unknown'"
+        echo "unknown"
+        return 1
+    fi
 
-	echo "$TYPE"
-	return 0
+    echo "$TYPE"
+    return 0
 }
 
 # Returns a positive result (exit code 0) if we are currently in a
 # git submodule.  Based off https://gist.github.com/sehe/1208393
 function is_submodule() {
-	local CHILD_DIR PARENT_DIR MODULE_PATH FULL_MODULE_PATH
+    local CHILD_DIR PARENT_DIR MODULE_PATH FULL_MODULE_PATH
 
-	# Get the root of this repository
-	CHILD_DIR="$(git rev-parse --show-toplevel)"
+    # Get the root of this repository
+    CHILD_DIR="$(git rev-parse --show-toplevel)"
 
-	if [ -z "$CHILD_DIR" ]; then
-		return 1 # Negative
-	fi
+    if [ -z "$CHILD_DIR" ]; then
+        return 1 # Negative
+    fi
 
-	# Get the root of the parent repository
-	PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
+    # Get the root of the parent repository
+    PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
 
-	if [ -z "$PARENT_DIR" ]; then
-		return 1 # Negative
-	fi
+    if [ -z "$PARENT_DIR" ]; then
+        return 1 # Negative
+    fi
 
-	# List all submodules in parent.  Careful with the subshells
-	while read MODULE_PATH; do
-		# Get the full path to the module
-		FULL_MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
+    # List all submodules in parent.  Careful with the subshells
+    while read MODULE_PATH; do
+        # Get the full path to the module
+        FULL_MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
 
-		if [ "$FULL_MODULE_PATH" == "$CHILD_DIR" ]; then
-			# This variable is NOT local
-			SUBMODULE_PATH="$MODULE_PATH"
-			return 0 # Affirmative
-		fi
-	done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
+        if [ "$FULL_MODULE_PATH" == "$CHILD_DIR" ]; then
+            # This variable is NOT local
+            SUBMODULE_PATH="$MODULE_PATH"
+            return 0 # Affirmative
+        fi
+    done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
 
-	return 1 # Negative
+    return 1 # Negative
 }
 
 # Resolve paths based on an original location.  Useful for figuring out
@@ -114,64 +114,64 @@ function is_submodule() {
 #         FILES="$(resolve_paths "$STARTING_DIR" ${1+"$@"})"
 # Parameters:  DirectoryFromWhence FilenameOrPath
 function resolve_path() {
-	local WHENCE="$1" # Directory that we use for resolution
-	local FILE="$2" # Relative or absolute file/path
-	local RESULT="$FILE" # Our end result
+    local WHENCE="$1" # Directory that we use for resolution
+    local FILE="$2" # Relative or absolute file/path
+    local RESULT="$FILE" # Our end result
 
-	if [ "${FILE:0:1}" != "/" ]; then
-		RESULT="${WHENCE}/${FILE}"
-	fi
+    if [ "${FILE:0:1}" != "/" ]; then
+        RESULT="${WHENCE}/${FILE}"
+    fi
 
-	debug "resolve_path '$WHENCE' '$FILE' becomes '$RESULT'"
-	echo "$RESULT"
+    debug "resolve_path '$WHENCE' '$FILE' becomes '$RESULT'"
+    echo "$RESULT"
 }
 
 # Run all scripts in the given subdirectory, like the run-parts command.
 # Exit on error
 # Parameters:  DirectoryOfScripts ArgsToPassToScripts
 function run_all_scripts() {
-	local RESULT SCRIPT
-	local DIR="$1"
-	shift
+    local RESULT SCRIPT
+    local DIR="$1"
+    shift
 
-	if [ ! -d "$DIR" ] && [ ! -d "./$SUBMODULE_PATH/$DIR" ]; then
-		debug "run_all_scripts '$DIR' no scripts to run"
-		# No directory, thus no scripts to run, thus success!
-		return 0
-	fi
+    if [ ! -d "$DIR" ] && [ ! -d "./$SUBMODULE_PATH/$DIR" ]; then
+        debug "run_all_scripts '$DIR' no scripts to run"
+        # No directory, thus no scripts to run, thus success!
+        return 0
+    fi
 
-	while read FN; do
-		# Lowest priority: submodule files
-		SCRIPT="./$SUBMODULE_PATH/$DIR/$FN"
+    while read FN; do
+        # Lowest priority: submodule files
+        SCRIPT="./$SUBMODULE_PATH/$DIR/$FN"
 
-		# Better: the files in the repository
-		if [ -f "$DIR/$FN" ]; then
-			SCRIPT="$DIR/$FN"
-		fi
+        # Better: the files in the repository
+        if [ -f "$DIR/$FN" ]; then
+            SCRIPT="$DIR/$FN"
+        fi
 
-		# Best: the files in the local directory
-		if [ -f "local/$DIR/$FN" ]; then
-			SCRIPT="local/$DIR/FN"
-		fi
+        # Best: the files in the local directory
+        if [ -f "local/$DIR/$FN" ]; then
+            SCRIPT="local/$DIR/FN"
+        fi
 
-		debug "run_all_scripts '$SCRIPT'"
-		# Run in subshell so we preserve environment.  Keep current environment
-		# variables around for things like the pre-commit hook.
-		(
-			. "$SCRIPT" ${1+"$@"}
-		)
+        debug "run_all_scripts '$SCRIPT'"
+        # Run in subshell so we preserve environment.  Keep current environment
+        # variables around for things like the pre-commit hook.
+        (
+            . "$SCRIPT" ${1+"$@"}
+        )
 
-		# Stop if any script reported an error
-		RESULT=$?
+        # Stop if any script reported an error
+        RESULT=$?
 
-		if [ $RESULT -ne 0 ]; then
-			debug "run_all_scripts result $RESULT"
-			return $RESULT
-		fi
-	done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
+        if [ $RESULT -ne 0 ]; then
+            debug "run_all_scripts result $RESULT"
+            return $RESULT
+        fi
+    done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
-	debug "run_all_scripts all passed"
-	return 0
+    debug "run_all_scripts all passed"
+    return 0
 }
 
 # Run all helper scripts that match the settings
@@ -184,90 +184,98 @@ function run_all_scripts() {
 #
 # Parameters: VariablePrefix HelperDirectory Filename TargetFile
 function run_helpers() {
-	local PREFIX="$1" # Prefix for variable to use for programs
-	local HELPER_DIR="$2" # Name of directory in helpers.d
-	local FILE="$3" # Filename to check or run against
-	local TARGET="$4" # Actual filename before it was made into a working copy
+    local PREFIX="$1" # Prefix for variable to use for programs
+    local HELPER_DIR="$2" # Name of directory in helpers.d
+    local FILE="$3" # Filename to check or run against
+    local TARGET="$4" # Actual filename before it was made into a working copy
 
-	if [ -z "$TARGET" ]; then
-		TARGET="$FILE"
-	fi
+    if [ -z "$TARGET" ]; then
+        TARGET="$FILE"
+    fi
 
-	local FILE_TYPE="$(get_file_type "$TARGET")"
-	local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
-	local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS RESULT FULL_COMMAND
-	eval "CONFIGS=\$$CONFIGS_VAR_NAME"
-	HELPER_DIR="util/helpers/${HELPER_DIR}/${FILE_TYPE}"
-	debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' '$FILE' '$TARGET'"
+    local FILE_TYPE="$(get_file_type "$TARGET")"
+    local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
+    local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT FULL_COMMAND
+    CONFIGS=${!CONFIGS_VAR_NAME}
+    HELPER_DIR="util/helpers/${HELPER_DIR}"
+    debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' '$FILE' '$TARGET'"
 
-	if [ ! -d "${HELPER_DIR}" ]; then
-		# No scripts, thus nothing happens.  Don't report an error
-		debug 'run_helpers directory does not exist'
-		return 0
-	fi
+    if [ -z "$CONFIGS" ]; then
+        # No configuration - skip validation
+        debug 'run_helpers nothing to try'
+        return 0
+    fi
 
-	if [ -z "$CONFIGS" ]; then
-		# No configuration - skip validation
-		debug 'run_helpers nothing to try'
-		return 0
-	fi
+    # Find a configuration that works
+    for CONFIG in $CONFIGS; do
+        CONFIG_COMMANDS="${CONFIG//+/ /}"
+        MISSING_COMMANDS=""
 
-	# Find a configuration that works
-	for CONFIG in $CONFIGS; do
-		CONFIG_COMMANDS="${CONFIG//+/ /}"
-		MISSING_COMMANDS=""
+        for COMMAND in $CONFIG_COMMANDS; do
+            FULL_COMMAND="${HELPER_DIR}/${FILE_TYPE}/${COMMAND}"
 
-		for COMMAND in $CONFIG_COMMANDS; do
-			FULL_COMMAND="${HELPER_DIR}/${COMMAND}"
+            if [ ! -x "$FULL_COMMAND" ]; then
+                # Fall back to the _common directory
+                FULL_COMMAND="${HELPER_DIR}/_common/${COMMAND}"
+            fi
 
-			if [ ! -f "$FULL_COMMAND" ]; then
-				debug "run_helpers Command does not exist: $COMMAND"
-				MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
-			else
-				# Run in a subshell for safety
-				(
-					. "$FULL_COMMAND" ""
-				)
+            if [ ! -x "$FULL_COMMAND" ]; then
+                debug "run_helpers Command does not exist or is not executable: $FULL_COMMAND"
+                MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
+            else
+                # Run in a subshell for safety
+                (
+                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
+                    OPTIONS="${!OPTIONS_VARIABLE}"
+                    . "$FULL_COMMAND" ""
+                )
 
-				RESULT=$?
+                RESULT=$?
 
-				if [ $RESULT -ne 0 ]; then
-					debug "run_helpers Command reported failure: $COMMAND"
-					MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
-				fi
-			fi
-		done
+                if [ $RESULT -ne 0 ]; then
+                    debug "run_helpers Command reported failure: $COMMAND"
+                    MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
+                fi
+            fi
+        done
 
-		debug "run_helpers '$CONFIG' failures: $MISSING_COMMANDS"
+        debug "run_helpers '$CONFIG' failures: $MISSING_COMMANDS"
 
-		if [ -z "$MISSING_COMMANDS" ]; then
-			# We have every component - run the linters
-			for COMMAND in $CONFIG_COMMANDS; do
-				FULL_COMMAND="${HELPER_DIR}/${COMMAND}"
+        if [ -z "$MISSING_COMMANDS" ]; then
+            # We have every component - run the linters
+            for COMMAND in $CONFIG_COMMANDS; do
+                FULL_COMMAND="${HELPER_DIR}/${FILE_TYPE}/${COMMAND}"
 
-				# Run in subshell so we preserve environment.
-				(
-					. "$FULL_COMMAND" "$FILE"
-				)
+                if [ ! -x "$FULL_COMMAND" ]; then
+                    # Fall back to the _common directory
+                    FULL_COMMAND="${HELPER_DIR}/_common/${COMMAND}"
+                fi
 
-				# Stop if any script reported an error
-				RESULT=$?
-				debug "run_helpers '$CONFIG' '$COMMAND' $RESULT"
+                # Run in subshell so we preserve environment.
+                (
+                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
+                    OPTIONS="${!OPTIONS_VARIABLE}"
+                    . "$FULL_COMMAND" "$FILE"
+                )
 
-				if [ $RESULT -ne 0 ]; then
-					return $RESULT
-				fi
-			done
+                # Stop if any script reported an error
+                RESULT=$?
+                debug "run_helpers '$CONFIG' '$COMMAND' $RESULT"
 
-			# Pass
-			debug "run_helpers '$CONFIG' all passed"
-			return 0
-		fi
-	done
+                if [ $RESULT -ne 0 ]; then
+                    return $RESULT
+                fi
+            done
 
-	# No matches
-	debug "run_helpers nothing matched"
-	return 0
+            # Pass
+            debug "run_helpers '$CONFIG' all passed"
+            return 0
+        fi
+    done
+
+    # No matches
+    debug "run_helpers nothing matched"
+    return 0
 }
 
 
@@ -275,68 +283,68 @@ function run_helpers() {
 # Result:  MD5 Mode User:Group Size
 # Does not log the last modification date - just info about the content
 function stat_file() {
-	local FN="$1"
-	git hash-object "$FN" | tr -d "\n"
-	/usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || \
-	stat -f " %p %u:%g %z" "$FN"
+    local FN="$1"
+    git hash-object "$FN" | tr -d "\n"
+    /usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || \
+    stat -f " %p %u:%g %z" "$FN"
 }
 
 # Create a temporary file and echo out the name
 function temporary_file() {
-	if test_for_program mktemp; then
-		debug "temporary_file mktemp"
-		mktemp 2> /dev/null || mktemp -t git-started
-		return 0
-	fi
-	
-	if test_for_program gmktemp; then
-		debug "temporary_file gmktemp"
-		gmktemp
-		return 0
-	fi
+    if test_for_program mktemp; then
+        debug "temporary_file mktemp"
+        mktemp 2> /dev/null || mktemp -t git-started
+        return 0
+    fi
+    
+    if test_for_program gmktemp; then
+        debug "temporary_file gmktemp"
+        gmktemp
+        return 0
+    fi
 
-	if test_for_program tempfile; then
-		debug "temporary_file tempfile"
-		tempfile
-		return 0
-	fi
+    if test_for_program tempfile; then
+        debug "temporary_file tempfile"
+        tempfile
+        return 0
+    fi
 
-	debug "temporary_file manual"
-	FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
+    debug "temporary_file manual"
+    FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
 
-	while [ -f $FN ]; do
-		FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
-	done
+    while [ -f $FN ]; do
+        FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
+    done
 
-	touch $FN
-	echo $FN
+    touch $FN
+    echo $FN
 }
 
 # Attempt to see if a program is in the path and if it can be used.
 # Returns true if the program is available.
 function test_for_program() {
-	local RESULT
-	local WHICH="$(which "$1" 2>&1)"
-	RESULT=$?
+    local RESULT
+    local WHICH="$(which "$1" 2>&1)"
+    RESULT=$?
 
-	# No error code
-	if [ $RESULT -eq 0 ]; then
-		# A string was reported back
-		if [ ! -z "$WHICH" ]; then
-			# That string is a real filename
-			if [ -f "$WHICH" ]; then
-				return 0
-			else
-				debug "test_for_program '$WHICH' file not found"
-			fi
-		else
-			debug "test_for_program '$WHICH' empty string"
-		fi
-	else
-		debug "test_for_program '$WHICH' error code '$RESULT'"
-	fi
+    # No error code
+    if [ $RESULT -eq 0 ]; then
+        # A string was reported back
+        if [ ! -z "$WHICH" ]; then
+            # That string is a real filename
+            if [ -f "$WHICH" ]; then
+                return 0
+            else
+                debug "test_for_program '$WHICH' file not found"
+            fi
+        else
+            debug "test_for_program '$WHICH' empty string"
+        fi
+    else
+        debug "test_for_program '$WHICH' error code '$RESULT'"
+    fi
 
-	return 1
+    return 1
 }
 
 # Go to the root of the repository we with to act upon
@@ -348,20 +356,20 @@ cd "$(git rev-parse --show-toplevel)"
 SUBMODULE_PATH=""
 
 if ! is_submodule; then
-	TOOL_DIR="util"
-	TARGET_DIR="$(pwd)"
-	LOCAL_DIR="$(pwd)/local"
+    TOOL_DIR="util"
+    TARGET_DIR="$(pwd)"
+    LOCAL_DIR="$(pwd)/local"
 else
-	TOOL_DIR="${SUBMODULE_PATH}/util"
-	cd ..
-	cd "$(git rev-parse --show-toplevel)" # Up to the root of the real repo
-	TARGET_DIR="$(pwd)"
-	LOCAL_DIR="$(pwd)/local"
+    TOOL_DIR="${SUBMODULE_PATH}/util"
+    cd ..
+    cd "$(git rev-parse --show-toplevel)" # Up to the root of the real repo
+    TARGET_DIR="$(pwd)"
+    LOCAL_DIR="$(pwd)/local"
 fi
 
 # Add node programs to the path
 if [ -d "node_modules/.bin" ]; then
-	PATH="$(pwd)/node_modules/.bin;$PATH"
+    PATH="$(pwd)/node_modules/.bin;$PATH"
 fi
 
 # Debugging mode - lots of useful debug information gets shown
@@ -399,13 +407,16 @@ LINT_CSS="prettycss"
 LINT_JS="jslint jsl"
 LINT_JSON="jslint"
 LINT_PHP="cli"
+LINT_SASS="sass"
 LINT_YAML=""
 
 # Same goes for the pretty printers
 PRETTY_CSS="prettycss"
-PRETTY_JS="jsbeautify unexpand"
-PRETTY_MARKDOWN="unexpand"
+PRETTY_JS="jsbeautify expand"
+PRETTY_MARKDOWN="expand"
 PRETTY_PHP="phpbeautifier"
+PRETTY_SASS="sassconvert"
+PRETTY_SCSS="sassconvert"
 PRETTY_YAML="expand"
 
 # Lint command-line options for various language/program pairs
@@ -414,28 +425,38 @@ LINT_JS_JSL_OPTIONS="-nologo -nofilelisting -nosummary -process"
 LINT_JS_JSLINT_OPTIONS=""
 LINT_JSON_JSLINT_OPTIONS=""
 LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
+LINT_SASS_SASS_OPTIONS="--check"
+LINT_SCSS_SASS_OPTIONS="--check"
 
 # Pretty printing command-line options
 PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
-PRETTY_JS_JSBEAUTIFY_OPTIONS="--indent-with-tabs --jslint-happy --brace-style=end-expand"
+PRETTY_JS_JSBEAUTIFY_OPTIONS="--jslint-happy --brace-style=end-expand"
+PRETTY_JS_EXPAND_OPTIONS="--tabs=4 --initial"
+PRETTY_JS_UNEXPAND_OPTIONS="--tabs=4 --first-only"
+PRETTY_MARKDOWN_EXPAND_OPTIONS="--tabs=4 --initial"
+PRETTY_MARKDOWN_UNEXPAND_OPTIONS="--tabs=4 --first-only"
 PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
+PRETTY_SASS_SASSCONVERT_OPTIONS="--indent --from sass --to sass --indent 4"
+PRETTY_SCSS_SASSCONVERT_OPTIONS="--indent --from scss --to scss --indent 4"
+PRETTY_YAML_EXPAND_OPTIONS="--tabs=4 --initial"
+PRETTY_YAML_UNEXPAND_OPTIONS="--tabs=4 --first-only"
 
 # Provide the ability to override the above config with your own values
 if [ -f util/config/git-started-setup ]; then
-	. util/config/git-started-setup
+    . util/config/git-started-setup
 fi
 
 # Detect if COLOR=auto and if we are on a tty
 if [ "$COLOR" == "auto" ]; then
-	if [ -t 0 ]; then
-		COLOR="yes"
-	else
-		COLOR="no"
-	fi
+    if [ -t 0 ]; then
+        COLOR="yes"
+    else
+        COLOR="no"
+    fi
 fi
 
 # If COLOR is "no", clear out all colors
 if [ "$COLOR" == "no" ]; then
-	unset printenv | grep -o "^COLOR_[^=]"
+    unset printenv | grep -o "^COLOR_[^=]"
 fi
 
