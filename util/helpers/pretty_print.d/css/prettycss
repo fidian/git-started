@@ -6,11 +6,11 @@ else
 	local FILE="$1"
 	local TEMP="$(temporary_file)"
 
-	prettycss $PRETTY_CSS_PRETTYCSS_OPTIONS "$FILE" > "$TEMP" 2>&1
+	prettycss $OPTIONS "$FILE" > "$TEMP" 2>&1
 
 	if [ $? -ne 0 ]; then
 		pretty_error "$TARGET"
-		prettycss $PRETTY_CSS_PRETTYCSS_OPTIONS "$FILE" 2>&1
+		prettycss $OPTIONS "$FILE" 2>&1
 	else
 		# mv does not preserve destination file permissions
 		cat "$TEMP" > "$FILE"
