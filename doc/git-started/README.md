@@ -29,40 +29,40 @@ You need to use git as your version control system.  These scripts work on Linux
 
 Next, decide if you want to merge this repository or use this as a submodule.  If you are unsure, try the submodule route first and see if that causes too many problems for you.  Follow the steps in that section, then come back here.
 
-Finally, _do not clone this repository!_  That won't be what you need in the end.  You want to augment your repository with these tools, not base all of your work off this code.  If you clone this repository, your `origin` will be set to be this project.  While you can still change the setting, it is not what you desire.
+Finally, _do not clone this repository!_  Cloning is great if you want to work on this project, but do not clone if you wish to just add the functionality into your codebase.  You want to augment your repository with these tools, not base all of your work off this code.  If you clone this repository, your `origin` will be set to be this project.  While you can still change the setting, it is not what you desire.
 
 Next, follow the section that suits your situation.
 
 
-Including as a Submodule
-------------------------
+Including as a Submodule (Recommended)
+--------------------------------------
 
 First, go to the [GitHub project] and fork it.  This way you can later customize some of the scripts and still get all of the benefits of this repository and updates.
 
-	# Start off in your repository
-	cd your_repository
+    # Start off in your repository
+    cd your_repository
 
-	# Add your fork as a submodule - we are putting the files in
-	# the hidden directory .hooks to hide them
-	git submodule add https://github.com/fidian/git-started.git .hooks
+    # Add your fork as a submodule - we are putting the files in
+    # the hidden directory .hooks to hide them
+    git submodule add https://github.com/fidian/git-started.git .hooks
 
-	# Commit
-	git commit -m 'Adding git-started'
+    # Commit
+    git commit -m 'Adding git-started'
 
 Updates from here are pretty easy.  First you need to merge commits into your fork of the project, then you update the submodule.
 
     # I put the submodule into your_repository/.hooks
-	cd your_repository/.hooks
+    cd your_repository/.hooks
 
-	# Add the remote, in case you did not have this yet
-	git remote add git-started https://github.com/fidian/git-started.git
+    # Add the remote, in case you did not have this yet
+    git remote add git-started https://github.com/fidian/git-started.git
 
-	# Merge in upstream changes
-	git fetch git-started
-	git merge git-started/master
+    # Merge in upstream changes
+    git fetch git-started
+    git merge git-started/master
 
-	# Push out to your fork
-	git push
+    # Push out to your fork
+    git push
 
 You can also safely add additonal changes to your fork.
 
@@ -72,44 +72,44 @@ Including by Merging
 
 This adds the commit history of this project into your repository as though the edits were made directly in your system.
 
-	# Start off in your git repository
-	cd your_repository
-	
-	# It is best to work in branches so you can undo things easier
-	git checkout -b git-started-branch
-	
-	# Add the git-started repository as a remote
-	git remote add git-started https://github.com/fidian/git-started.git
-	
-	# Get the commit history from git-started
-	git fetch git-started
-	
-	# Merge git-started's master into your working branch
-	git merge git-started/master
-	
-	# Handle merge conflicts and finish the commit if you have problems
-	# ... work work work ...
-	
-	# Then you are ready to merge git-started-branch into your repository
-	git checkout master
-	git merge git-started-branch
-	git branch -d git-started-branch
-	git pull
-	git push
+    # Start off in your git repository
+    cd your_repository
+    
+    # It is best to work in branches so you can undo things easier
+    git checkout -b git-started-branch
+    
+    # Add the git-started repository as a remote
+    git remote add git-started https://github.com/fidian/git-started.git
+    
+    # Get the commit history from git-started
+    git fetch git-started
+    
+    # Merge git-started's master into your working branch
+    git merge git-started/master
+    
+    # Handle merge conflicts and finish the commit if you have problems
+    # ... work work work ...
+    
+    # Then you are ready to merge git-started-branch into your repository
+    git checkout master
+    git merge git-started-branch
+    git branch -d git-started-branch
+    git pull
+    git push
 
 Upgrades are essentially the same thing.  Here's the abbreviated version.
 
-	cd your_repository
-	git checkout -b git-started-branch
-	git fetch git-started
-	# If that fails, use "git remote add" and then fetch again
-	git merge git-started/master
-	# Handle merge conflicts here
-	git checkout master
-	git merge git-started-branch
-	git branch -d git-started-branch
-	git pull
-	git push
+    cd your_repository
+    git checkout -b git-started-branch
+    git fetch git-started
+    # If that fails, use "git remote add" and then fetch again
+    git merge git-started/master
+    # Handle merge conflicts here
+    git checkout master
+    git merge git-started-branch
+    git branch -d git-started-branch
+    git pull
+    git push
 
 
 Setting Up The Hooks
@@ -118,10 +118,10 @@ Setting Up The Hooks
 In order to see any benefit at all, you *must* set up the repository.
 
     # When merged
-	util/bin/setup_repository
+    util/bin/setup_repository
 
-	# As submodule in .hooks directory
-	.hooks/util/bin/setup_repository
+    # As submodule in .hooks directory
+    .hooks/util/bin/setup_repository
 
 By default, this will do the following things:
 
@@ -181,11 +181,14 @@ util/helpers/file_detection.d/
 
 You can extend how `get_file_type()` determines the file type by plugging in additional scripts here.  There's one that can check the file extension for a few well-known web based languages.  You are not limited to merely file extensions.  You could check the path, open the file and read some data from it or exclude files from processing by plugging in a script earlier in the process that will return a message for all excluded files.
 
-
 util/helpers/lint_check.d
 -------------------------
 
 A lint check will help to ensure you are committing syntactically correct files.  This uses the file detection in `get_file_type()` and will execute the script for the right file type.
+
+If a script is required and it isn't in the special "per file type" directory, then we will check `_common` to see if it exists there.  That way you can write generic scripts and they will be picked up without the need for a symlink or similar functionality.
+
+Scripts will be given an `$OPTIONS` variable, which corresponds to the lengthy one in `git-started-setup`.  It will save you from typing such horrible things as `$PRETTY_JS_JSLINT_OPTIONS` in your code, plus you can add more generic scripts to the `_common` directory and the options will always use the same variable name.
 
 
 util/helpers/pretty_print.d
@@ -193,12 +196,12 @@ util/helpers/pretty_print.d
 
 These programs will be executed to pretty print a given file type.  If the `get_file_type()` function returns 'php', then a `util/helpers/pretty_print.d/php` script will be used if it is found.
 
+Just like the lint checkers, the pretty printing can utilize a `_common` directory fallback and the `$OPTIONS` variable will be already set.
 
 util/helpers/setup.d
 --------------------
 
 Setup scripts to run in order to prepare your repository correctly.  This can check to make sure that you have the right software installed (like npm or php), build configuration files for your system, check out submodules, download things and do anything else that is required to get the repository working for you.
-
 
 License Information
 ===================

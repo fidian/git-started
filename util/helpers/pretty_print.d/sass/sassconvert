@@ -1,16 +1,16 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	test_for_program unexpand
+	test_for_program sass-convert
 else 
 	local FILE="$1"
 	local TEMP="$(temporary_file)"
 
-	unexpand $OPTIONS "$FILE" > "$TEMP" 2>&1
+	sass-convert $OPTIONS "$FILE" > "$TEMP" 2> /dev/null
 
 	if [ $? -ne 0 ]; then
 		pretty_error "$TARGET"
-		unexpand $OPTIONS "$FILE" > /dev/null
+		sass-convert $OPTIONS "$FILE" > "$TEMP" 
 	else
 		# mv does not preserve destination file permissions
 		cat "$TEMP" > "$FILE"

@@ -26,6 +26,14 @@ case "$EXT" in
 	php|inc)
 		echo "php"
 		;;
+
+    sass)
+        echo "sass"
+        ;;
+	
+    scss)
+        echo "scss"
+        ;;
 	
 	yaml|yml)
 		echo "yaml"

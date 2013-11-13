@@ -10,7 +10,7 @@ else
 
 	if [ $? -ne 0 ]; then
 		pretty_error "$TARGET"
-		expand $OPTIONS "$FILE" > "$TEMP" 2>&1
+		expand $OPTIONS "$FILE" > /dev/null
 	else
 		# mv does not preserve destination file permissions
 		cat "$TEMP" > "$FILE"

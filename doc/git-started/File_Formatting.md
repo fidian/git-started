@@ -13,11 +13,11 @@ CSS - Cascading Style Sheets
 
 Lint checkers:
 
-* PrettyCSS - A node.js based validator and pretty printer.  https://github.com/fidian/PrettyCSS
+* PrettyCSS - A node.js based validator and pretty printer.  [GitHub](https://github.com/fidian/PrettyCSS)
 
 Pretty printers:
 
-* PrettyCSS - A node.js based validator and pretty printer.  https://github.com/fidian/PrettyCSS
+* PrettyCSS - A node.js based validator and pretty printer.  [GitHub](https://github.com/fidian/PrettyCSS)
 
 
 JS - JavaScript
@@ -30,7 +30,32 @@ Lint checkers:
 
 Pretty printers:
 
-* None
+* js-beautify - JavaScript based beautifer.  [GitHub](https://github.com/fidian/js-beautify)
+
+
+JSON - JavaScript Object Notation
+---------------------------------
+
+Lint checkers:
+
+* jslint - JSLint, command-line version.  https://github.com/reid/node-jslint
+
+Pretty printers:
+
+* None currently.
+
+
+Markdown
+--------
+
+Lint checkers:
+
+* None currently.
+
+Pretty printers:
+
+* expand - Change tabs into spaces.
+* unexpand - Change spaces into tabs.
 
 
 PHP - PHP: Hypertext Preprocessor
@@ -42,4 +67,29 @@ Lint checkers:
 
 Pretty printers:
 
-* phpbeautifier - PEAR's PHP_Beautifier package.  http://pear.php.net/package/PHP_Beautifier
+* phpbeautifier - PEAR's PHP_Beautifier package.  [PEAR](http://pear.php.net/package/PHP_Beautifier)
+
+
+SASS - Syntastically Awesome Style Sheets
+-----------------------------------------
+
+Lint checkers:
+
+* sass - Ruby SASS implementation [GitHub](https://github.com/nex3/sass)
+
+Pretty Printers:
+
+* sass - Ruby SASS implementation [GitHub](https://github.com/nex3/sass)
+
+
+SCSS - Syntastically Awesome Style Sheets v3
+--------------------------------------------
+
+Lint checkers:
+
+* sass - Ruby SASS implementation [GitHub](https://github.com/nex3/sass)
+
+Pretty Printers:
+
+* sass - Ruby SASS implementation [GitHub](https://github.com/nex3/sass)
+
