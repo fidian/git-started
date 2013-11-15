@@ -388,6 +388,14 @@ unset GIT_DIR
 cd "$(git rev-parse --show-toplevel)"
 SUBMODULE_PATH=""
 
+# Debugging mode - lots of useful debug information gets shown
+# when you change this to 1
+: ${DEBUG:=0}
+
+# Enable colors - you can use "yes" for always use colors, "no" to never use
+# colors, or "auto" for them to be automatically applied if using a terminal
+: ${COLOR:="auto"}
+
 if ! is_submodule; then
     TOOL_DIR="util"
     TARGET_DIR="$(pwd)"
@@ -404,14 +412,6 @@ fi
 if [ -d "node_modules/.bin" ]; then
     PATH="$(pwd)/node_modules/.bin:$PATH"
 fi
-
-# Debugging mode - lots of useful debug information gets shown
-# when you change this to 1
-: ${DEBUG:=0}
-
-# Enable colors - you can use "yes" for always use colors, "no" to never use
-# colors, or "auto" for them to be automatically applied if using a terminal
-: ${COLOR:="auto"}
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking
 # Include trailing slash
