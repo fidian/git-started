@@ -1,5 +1,5 @@
 #!/bin/bash
-# 
+#
 # Ensure things are all correct
 
 . "${0%/*}"/git-started-setup
@@ -73,6 +73,13 @@ for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext ..
 		FAIL "got \"$ACTUAL\""
 	fi
 done
+
+
+#
+# get_executable
+#
+TEST "get_executable"
+FAIL "No tests exist"
 
 
 #

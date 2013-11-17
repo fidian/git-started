@@ -53,12 +53,51 @@ function file_extension() {
     echo "$EXTENSION"
 }
 
+# Finds an executable file for a given path.  Searches the local directory,
+# main repository, then finally the git-started repository.  When git-started
+# is used as a submodule, the directory layout might look like this
+#
+# /local/some_path      Priority #1
+# some_path             Priority #2
+# /submodule/some_path  Priority #3
+#
+# Pass in the path you want to find
+function get_executable() {
+    local SOME_PATH="$1"
+    debug "get_executable searching for '$SOME_PATH'"
+
+    if [ -x "${LOCAL_DIR}/${SOME_PATH}" ]; then
+        debug "get_executable found local '${LOCAL_DIR}/${SOME_PATH}'"
+        echo "${LOCAL_DIR}/${SOME_PATH}"
+        return 0
+    fi
+
+    if [ -x "${TARGET_DIR}/${SOME_PATH}" ]; then
+        debug "get_executable found main '${TARGET_DIR}/${SOME_PATH}'"
+        echo "${TARGET_DIR}/${SOME_PATH}"
+        return 0
+    fi
+
+    if is_submodule; then
+        if [ -x "${SUBMODULE_PATH}/${SOME_PATH}" ]; then
+            debug "get_executable found submodule '${SUBMODULE_PATH}/${SOME_PATH}'"
+            echo "${SUBMODULE_PATH}/${SOME_PATH}"
+            return 0
+        fi
+    fi
+
+    # Failure to find a matching file
+    debug "get_executable failed to find match"
+    return 1
+}
+
+
 # Echos out the file processing "submodule" or the file type for the given
 # incoming file
 function get_file_type() {
     local TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
     debug "get_file_type result '$TYPE'"
-    
+
     if [ -z "$TYPE" ]; then
         # Failed to detect the type
         debug "get_file_type returning 'unknown'"
@@ -75,10 +114,17 @@ function get_file_type() {
 function is_submodule() {
     local CHILD_DIR PARENT_DIR MODULE_PATH FULL_MODULE_PATH
 
+    if [ ! -z "$CACHED_IS_SUBMODULE" ]; then
+        debug "is_submodule cached $CACHED_IS_SUBMODULE"
+        return $CACHED_IS_SUBMODULE
+    fi
+
     # Get the root of this repository
     CHILD_DIR="$(git rev-parse --show-toplevel)"
 
     if [ -z "$CHILD_DIR" ]; then
+        CACHED_IS_SUBMODULE=1
+        debug "is_submodule 1 = no child directory - strange error"
         return 1 # Negative
     fi
 
@@ -86,6 +132,8 @@ function is_submodule() {
     PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
 
     if [ -z "$PARENT_DIR" ]; then
+        CACHED_IS_SUBMODULE=1
+        debug "is_submodule 1 = parent is not a repository"
         return 1 # Negative
     fi
 
@@ -97,10 +145,14 @@ function is_submodule() {
         if [ "$FULL_MODULE_PATH" == "$CHILD_DIR" ]; then
             # This variable is NOT local
             SUBMODULE_PATH="$MODULE_PATH"
+            CACHED_IS_SUBMODULE=0
+            debug "is_submodule 0 = submodule matches"
             return 0 # Affirmative
         fi
     done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
 
+    CACHED_IS_SUBMODULE=1
+    debug "is_submodule 1 = no matching submodule"
     return 1 # Negative
 }
 
@@ -141,20 +193,9 @@ function run_all_scripts() {
     fi
 
     while read FN; do
-        # Lowest priority: submodule files
-        SCRIPT="./$SUBMODULE_PATH/$DIR/$FN"
+        SCRIPT="$(get_executable "$DIR/$FN")"
+        debug "run_all_scripts executable is '$SCRIPT'"
 
-        # Better: the files in the repository
-        if [ -f "$DIR/$FN" ]; then
-            SCRIPT="$DIR/$FN"
-        fi
-
-        # Best: the files in the local directory
-        if [ -f "local/$DIR/$FN" ]; then
-            SCRIPT="local/$DIR/FN"
-        fi
-
-        debug "run_all_scripts '$SCRIPT'"
         # Run in subshell so we preserve environment.  Keep current environment
         # variables around for things like the pre-commit hook.
         (
@@ -195,7 +236,7 @@ function run_helpers() {
 
     local FILE_TYPE="$(get_file_type "$TARGET")"
     local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
-    local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT FULL_COMMAND
+    local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
     CONFIGS=${!CONFIGS_VAR_NAME}
     HELPER_DIR="util/helpers/${HELPER_DIR}"
     debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' '$FILE' '$TARGET'"
@@ -212,22 +253,18 @@ function run_helpers() {
         MISSING_COMMANDS=""
 
         for COMMAND in $CONFIG_COMMANDS; do
-            FULL_COMMAND="${HELPER_DIR}/${FILE_TYPE}/${COMMAND}"
+            # Automatically fall back to the _common directory
+            SCRIPT="$(get_executable "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable "${HELPER_DIR}/_common/${COMMAND}")"
 
-            if [ ! -x "$FULL_COMMAND" ]; then
-                # Fall back to the _common directory
-                FULL_COMMAND="${HELPER_DIR}/_common/${COMMAND}"
-            fi
-
-            if [ ! -x "$FULL_COMMAND" ]; then
-                debug "run_helpers Command does not exist or is not executable: $FULL_COMMAND"
+            if [ -z "$SCRIPT" ]; then
+                debug "run_helpers Command does not exist or is not executable: $COMMAND"
                 MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
             else
                 # Run in a subshell for safety
                 (
                     OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
                     OPTIONS="${!OPTIONS_VARIABLE}"
-                    . "$FULL_COMMAND" ""
+                    . "$SCRIPT" ""
                 )
 
                 RESULT=$?
@@ -244,18 +281,14 @@ function run_helpers() {
         if [ -z "$MISSING_COMMANDS" ]; then
             # We have every component - run the linters
             for COMMAND in $CONFIG_COMMANDS; do
-                FULL_COMMAND="${HELPER_DIR}/${FILE_TYPE}/${COMMAND}"
-
-                if [ ! -x "$FULL_COMMAND" ]; then
-                    # Fall back to the _common directory
-                    FULL_COMMAND="${HELPER_DIR}/_common/${COMMAND}"
-                fi
+                # Automatically fall back to the _common directory
+                SCRIPT="$(get_executable "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable "${HELPER_DIR}/_common/${COMMAND}")"
 
                 # Run in subshell so we preserve environment.
                 (
                     OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
                     OPTIONS="${!OPTIONS_VARIABLE}"
-                    . "$FULL_COMMAND" "$FILE"
+                    . "$SCRIPT" "$FILE"
                 )
 
                 # Stop if any script reported an error
@@ -296,7 +329,7 @@ function temporary_file() {
         mktemp 2> /dev/null || mktemp -t git-started
         return 0
     fi
-    
+
     if test_for_program gmktemp; then
         debug "temporary_file gmktemp"
         gmktemp
@@ -355,6 +388,14 @@ unset GIT_DIR
 cd "$(git rev-parse --show-toplevel)"
 SUBMODULE_PATH=""
 
+# Debugging mode - lots of useful debug information gets shown
+# when you change this to 1
+: ${DEBUG:=0}
+
+# Enable colors - you can use "yes" for always use colors, "no" to never use
+# colors, or "auto" for them to be automatically applied if using a terminal
+: ${COLOR:="auto"}
+
 if ! is_submodule; then
     TOOL_DIR="util"
     TARGET_DIR="$(pwd)"
@@ -369,16 +410,8 @@ fi
 
 # Add node programs to the path
 if [ -d "node_modules/.bin" ]; then
-    PATH="$(pwd)/node_modules/.bin;$PATH"
+    PATH="$(pwd)/node_modules/.bin:$PATH"
 fi
-
-# Debugging mode - lots of useful debug information gets shown
-# when you change this to 1
-: ${DEBUG:=0}
-
-# Enable colors - you can use "yes" for always use colors, "no" to never use
-# colors, or "auto" for them to be automatically applied if using a terminal
-: ${COLOR:="auto"}
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking
 # Include trailing slash

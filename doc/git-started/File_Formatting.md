@@ -30,7 +30,7 @@ Lint checkers:
 
 Pretty printers:
 
-* js-beautify - JavaScript based beautifer.  [GitHub](https://github.com/fidian/js-beautify)
+* js-beautify - JavaScript based beautifer.  [Website](http://jsbeautifier.org/)
 
 
 JSON - JavaScript Object Notation
@@ -38,7 +38,7 @@ JSON - JavaScript Object Notation
 
 Lint checkers:
 
-* jslint - JSLint, command-line version.  https://github.com/reid/node-jslint
+* jslint - JSLint, command-line version.  [GitHub](https://github.com/reid/node-jslint)
 
 Pretty printers:
 
