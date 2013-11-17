@@ -420,7 +420,7 @@ LINT_JS_JSLINT_OPTIONS=""
 
 LINT_JSON_JSLINT_OPTIONS=""
 
-LINT_PHP_CLI_OPTIONS="-d error_reporting=E_ALL -d display_errors=0"
+LINT_PHP_CLI_OPTIONS="-l -d error_reporting=E_ALL -d display_errors=0"
 
 LINT_SASS_SASS_OPTIONS="--check"
 

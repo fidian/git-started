@@ -5,10 +5,10 @@ if [ -z "$1" ]; then
 else 
 	local FILE="$1"
 
-	php -l $LINT_PHP_CLI_OPTIONS "$FILE" > /dev/null 2>&1
+	php $OPTIONS "$FILE" > /dev/null 2>&1
 
 	if [ $? -ne 0 ]; then
 		lint_error "$FILE"
-		php -l $LINT_PHP_CLI_OPTIONS "$FILE" 2>&1
+		php $OPTIONS "$FILE" 2>&1
 	fi
 fi

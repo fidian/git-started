@@ -5,10 +5,10 @@ if [ -z "$1" ]; then
 else 
 	local FILE="$1"
 
-	prettycss $LINT_CSS_PRETTYCSS_OPTIONS "$FILE" > /dev/null 2>&1
+	prettycss $OPTIONS "$FILE" > /dev/null 2>&1
 
 	if [ $? -ne 0 ]; then
 		lint_error "$FILE" "$TARGET"
-		prettycss $LINT_CSS_PRETTYCSS_OPTIONS "$FILE" 2>&1
+		prettycss $OPTIONS "$FILE" 2>&1
 	fi
 fi
