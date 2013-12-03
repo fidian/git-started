@@ -209,7 +209,7 @@ function run_all_scripts() {
             debug "run_all_scripts result $RESULT"
             return $RESULT
         fi
-    done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
+    done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -executable -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
     debug "run_all_scripts all passed"
     return 0
