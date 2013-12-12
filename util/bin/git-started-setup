@@ -22,7 +22,7 @@
 # Write out a debug message to stderr if debug mode enabled
 function debug() {
     if [ "$DEBUG" -ne 0 ]; then
-        echo ${1+"$@"} > /dev/stderr
+        echo ${1+"$@"} >&2
     fi
 }
 
@@ -156,6 +156,42 @@ function is_submodule() {
     return 1 # Negative
 }
 
+# Execute a series of commands on exit
+function on_exit() {
+    local N=${#ON_EXIT_ITEMS[*]}
+    ON_EXIT_ITEMS[$n]="$*"
+
+    if [[ $n -eq 0 ]]; then
+        debug "Setting trap"
+        trap on_exit_trap EXIT
+    fi
+}
+
+# This is what is ran by the trap
+function on_exit_trap() {
+    for i in "${ON_EXIT_ITEMS[@]}"; do
+        debug "on_exit_trap: $i"
+        eval $i
+    done
+}
+
+# Generate a random string of the given length.
+# Uses no shell commands.
+#
+# Parameters: LengthOfString
+function random_string() {
+    local LEN="$1"
+    local STRING=""
+    local LETTERS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+
+    while [ "$LEN" -gt 0 ]; do
+        STRING+=${LETTERS:$RANDOM%62:1}
+        LEN=$(( $LEN - 1 ))
+    done
+
+    echo $STRING;
+}
+
 # Resolve paths based on an original location.  Useful for figuring out
 # what files were requested to be specified when running command-line
 # tools.
@@ -219,27 +255,25 @@ function run_all_scripts() {
 #
 # VariablePrefix is used for determining what settings to use
 # HelperDirectory is the name of the directory in util/helpers for scripts
-# Filename is the actual filename to work upon
-# TargetFile is the filename in the repo or an empty string, in case we
-#   copied TargetFile to a temporary file (passed in as parameter 3)
+# Filename is the filename to work upon
 #
-# Parameters: VariablePrefix HelperDirectory Filename TargetFile
+# TargetFile exists for reporting in case we copied TargetFile to a
+# temporary file.  That temporary file would be passed in as Filename.
+#
+# Parameters: VariablePrefix HelperDirectory Filename MoreArgsToPassToScripts
 function run_helpers() {
     local PREFIX="$1" # Prefix for variable to use for programs
     local HELPER_DIR="$2" # Name of directory in helpers.d
     local FILE="$3" # Filename to check or run against
-    local TARGET="$4" # Actual filename before it was made into a working copy
+    shift # Remove PREFIX
+    shift # Remove HELPER_DIR
 
-    if [ -z "$TARGET" ]; then
-        TARGET="$FILE"
-    fi
-
-    local FILE_TYPE="$(get_file_type "$TARGET")"
+    local FILE_TYPE="$(get_file_type "$FILE")"
     local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
     local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
     CONFIGS=${!CONFIGS_VAR_NAME}
     HELPER_DIR="util/helpers/${HELPER_DIR}"
-    debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' '$FILE' '$TARGET'"
+    debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' ${1+"$@"}"
 
     if [ -z "$CONFIGS" ]; then
         # No configuration - skip validation
@@ -288,7 +322,7 @@ function run_helpers() {
                 (
                     OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
                     OPTIONS="${!OPTIONS_VARIABLE}"
-                    . "$SCRIPT" "$FILE"
+                    . "$SCRIPT" "${1+"$@"}"
                 )
 
                 # Stop if any script reported an error
@@ -322,8 +356,44 @@ function stat_file() {
     stat -f " %p %u:%g %z" "$FN"
 }
 
+# Create a temporary directory
+function temporary_directory() {
+    local DIR
+
+    while true; do
+        DIR="$(temporary_name)"
+        if [ ! -d "$DIR" ]; then
+            mkdir -m 0755 "$DIR" 2>/dev/null && \
+                on_exit "rm -rf '$DIR'" && \
+                echo "$DIR" && \
+                return 0
+        fi
+    done
+}
+
+# Find where temporary files are supposed to go
+function temporary_directory_location() {
+    local DIR
+
+    # Initial default.  We override this with better things.
+    DIR=/tmp
+
+    if [ ! -z "$TMPDIR" ] && [ -d "$TMPDIR" ]; then
+        DIR="$TMPDIR"
+    fi
+
+    echo "$DIR"
+}
+
 # Create a temporary file and echo out the name
 function temporary_file() {
+    local FILE
+
+    while true; do
+        FILE="$(temporary_name)"
+        if [ ! -e "$FILE" ]; then
+            touch "$FILE"
+            
     if test_for_program mktemp; then
         debug "temporary_file mktemp"
         mktemp 2> /dev/null || mktemp -t git-started
@@ -353,6 +423,12 @@ function temporary_file() {
     echo $FN
 }
 
+# Create a name that is random for a temporary item.
+# Must work for both a directory and a file name.
+function temporary_name() {
+    echo "$(temporary_directory_location)/git-started.$(random_string 16)"
+}
+
 # Attempt to see if a program is in the path and if it can be used.
 # Returns true if the program is available.
 function test_for_program() {
@@ -378,6 +454,18 @@ function test_for_program() {
     fi
 
     return 1
+}
+
+# Update the destination file with the content (only content) of the source.
+# This is like the "mv" command, but we want to keep the original file's
+# ownership and mode intact.
+# 
+# Parameters Source Destination
+function update_content() {
+    local SRC="$1"
+    local DEST="$2"
+
+    cat "$1" > "$2"
 }
 
 # Go to the root of the repository we with to act upon
