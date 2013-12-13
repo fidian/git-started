@@ -21,7 +21,7 @@
 
 # Write out a debug message to stderr if debug mode enabled
 function debug() {
-    if [ "$DEBUG" -ne 0 ]; then
+    if [ ! -z "$DEBUG" ]; then
         echo ${1+"$@"} >&2
     fi
 }
@@ -61,33 +61,34 @@ function file_extension() {
 # some_path             Priority #2
 # /submodule/some_path  Priority #3
 #
-# Pass in the path you want to find
+# Parameters: ResultVariableName PathYouWantToFind
 function get_executable() {
-    local SOME_PATH="$1"
+    local SOME_PATH="$2"
     debug "get_executable searching for '$SOME_PATH'"
 
     if [ -x "${LOCAL_DIR}/${SOME_PATH}" ]; then
         debug "get_executable found local '${LOCAL_DIR}/${SOME_PATH}'"
-        echo "${LOCAL_DIR}/${SOME_PATH}"
+        local "$1" && indirect $1 "${LOCAL_DIR}/${SOME_PATH}"
         return 0
     fi
 
     if [ -x "${TARGET_DIR}/${SOME_PATH}" ]; then
         debug "get_executable found main '${TARGET_DIR}/${SOME_PATH}'"
-        echo "${TARGET_DIR}/${SOME_PATH}"
+        local "$1" && indirect $1 "${TARGET_DIR}/${SOME_PATH}"
         return 0
     fi
 
     if is_submodule; then
         if [ -x "${SUBMODULE_PATH}/${SOME_PATH}" ]; then
             debug "get_executable found submodule '${SUBMODULE_PATH}/${SOME_PATH}'"
-            echo "${SUBMODULE_PATH}/${SOME_PATH}"
+            local "$1" && indirect $1 "${SUBMODULE_PATH}/${SOME_PATH}"
             return 0
         fi
     fi
 
     # Failure to find a matching file
     debug "get_executable failed to find match"
+    local "$1" && indirect $1 ""
     return 1
 }
 
@@ -108,6 +109,25 @@ function get_file_type() {
     echo "$TYPE"
     return 0
 }
+
+# Assign data to a variable that's in a parent scope.
+# See http://tldp.org/LDP/abs/html/ivr.html for lots of info.
+# Based on "upvar" from
+# http://www.fvue.nl/wiki/Bash:_Passing_variables_by_reference
+#
+# Can't use that version as it is GPL.  This one only works with
+# references and doesn't bother with validation.  Does not send arrays.
+# Only can use this to pass a single value up.  Can't do multiples.
+#
+# Usage:  (probably at the bottom of your script)
+#     local "$1" && indirect $1 "some value to assign"
+#
+# Parameters: VariableNameToAssign ValueToAssign
+function indirect() {
+    unset -v "$1"
+    eval $1=\"\$2\"
+}
+
 
 # Returns a positive result (exit code 0) if we are currently in a
 # git submodule.  Based off https://gist.github.com/sehe/1208393
@@ -178,9 +198,9 @@ function on_exit_trap() {
 # Generate a random string of the given length.
 # Uses no shell commands.
 #
-# Parameters: LengthOfString
+# Parameters: ResultVariableName LengthOfString
 function random_string() {
-    local LEN="$1"
+    local LEN="$2"
     local STRING=""
     local LETTERS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 
@@ -189,7 +209,7 @@ function random_string() {
         LEN=$(( $LEN - 1 ))
     done
 
-    echo $STRING;
+    local "$1" && indirect $1 "$STRING"
 }
 
 # Resolve paths based on an original location.  Useful for figuring out
@@ -229,7 +249,7 @@ function run_all_scripts() {
     fi
 
     while read FN; do
-        SCRIPT="$(get_executable "$DIR/$FN")"
+        get_executable SCRIPT "$DIR/$FN"
         debug "run_all_scripts executable is '$SCRIPT'"
 
         # Run in subshell so we preserve environment.  Keep current environment
@@ -288,7 +308,7 @@ function run_helpers() {
 
         for COMMAND in $CONFIG_COMMANDS; do
             # Automatically fall back to the _common directory
-            SCRIPT="$(get_executable "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable "${HELPER_DIR}/_common/${COMMAND}")"
+            get_executable SCRIPT "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable SCRIPT "${HELPER_DIR}/_common/${COMMAND}"
 
             if [ -z "$SCRIPT" ]; then
                 debug "run_helpers Command does not exist or is not executable: $COMMAND"
@@ -316,7 +336,7 @@ function run_helpers() {
             # We have every component - run the linters
             for COMMAND in $CONFIG_COMMANDS; do
                 # Automatically fall back to the _common directory
-                SCRIPT="$(get_executable "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable "${HELPER_DIR}/_common/${COMMAND}")"
+                get_executable SCRIPT "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable SCRIPT "${HELPER_DIR}/_common/${COMMAND}"
 
                 # Run in subshell so we preserve environment.
                 (
@@ -356,77 +376,79 @@ function stat_file() {
     stat -f " %p %u:%g %z" "$FN"
 }
 
+# On successful termination of a command, send its "stdout" to a specific
+# file.  On failed termination, send "stdout" and "stderr" back out via
+# the normal means.
+#
+# Parameters: DestinationFile CommandToRunWithArguments
+function success_save() {
+    local DEST="$1"
+    local TEMP_DIR
+    local RESULT
+    temporary_directory TEMP_DIR
+    shift
+    debug "success_save \"$DEST\" ${1+"$@"}"
+    ${1+"$@"} > "$TEMP_DIR/stdout" 2> "$TEMP_DIR/stderr"
+    RESULT=$?
+
+    if [ $RESULT -eq 0 ]; then
+        debug "success_save was a success"
+        # Drop stderr and send stdout to destination file
+        # Can not use "mv" as it doesn't preserve target file permissions
+        cat "$TEMP_DIR/stdout" > "$DEST"
+    else
+        debug "success_save experienced an error"
+        # Send stderr and stdout back out
+        cat "$TEMP_DIR/stderr" >&2
+        cat "$TEMP_DIR/stdout"
+    fi
+
+    return $RESULT
+}
+
 # Create a temporary directory
+#
+# Parameters: ResultVariableName
 function temporary_directory() {
     local DIR
 
     while true; do
-        DIR="$(temporary_name)"
+        temporary_name DIR
         if [ ! -d "$DIR" ]; then
-            mkdir -m 0755 "$DIR" 2>/dev/null && \
+            mkdir -m 0700 "$DIR" 2>/dev/null && \
+                debug "temporary_directory $DIR" && \
                 on_exit "rm -rf '$DIR'" && \
-                echo "$DIR" && \
+                local "$1" && \
+                indirect $1 $DIR && \
                 return 0
         fi
     done
 }
 
 # Find where temporary files are supposed to go
+#
+# Parameters: ResultVariableName
 function temporary_directory_location() {
-    local DIR
-
     # Initial default.  We override this with better things.
-    DIR=/tmp
+    local DIR=/tmp
 
     if [ ! -z "$TMPDIR" ] && [ -d "$TMPDIR" ]; then
         DIR="$TMPDIR"
     fi
 
-    echo "$DIR"
-}
-
-# Create a temporary file and echo out the name
-function temporary_file() {
-    local FILE
-
-    while true; do
-        FILE="$(temporary_name)"
-        if [ ! -e "$FILE" ]; then
-            touch "$FILE"
-            
-    if test_for_program mktemp; then
-        debug "temporary_file mktemp"
-        mktemp 2> /dev/null || mktemp -t git-started
-        return 0
-    fi
-
-    if test_for_program gmktemp; then
-        debug "temporary_file gmktemp"
-        gmktemp
-        return 0
-    fi
-
-    if test_for_program tempfile; then
-        debug "temporary_file tempfile"
-        tempfile
-        return 0
-    fi
-
-    debug "temporary_file manual"
-    FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
-
-    while [ -f $FN ]; do
-        FN=/tmp/$(date +%c%N|md5sum|cut -b 1-32)
-    done
-
-    touch $FN
-    echo $FN
+    local "$1" && indirect $1 "$DIR"
 }
 
 # Create a name that is random for a temporary item.
 # Must work for both a directory and a file name.
+#
+# Parameters: ResultVariableName
 function temporary_name() {
-    echo "$(temporary_directory_location)/git-started.$(random_string 16)"
+    local TEMPDIR
+    local RANDOM_STRING
+    temporary_directory_location TEMPDIR
+    random_string RANDOM_STRING 16
+    local "$1" && indirect $1 "$TEMPDIR/git-started.$RANDOM_STRING"
 }
 
 # Attempt to see if a program is in the path and if it can be used.
@@ -456,17 +478,6 @@ function test_for_program() {
     return 1
 }
 
-# Update the destination file with the content (only content) of the source.
-# This is like the "mv" command, but we want to keep the original file's
-# ownership and mode intact.
-# 
-# Parameters Source Destination
-function update_content() {
-    local SRC="$1"
-    local DEST="$2"
-
-    cat "$1" > "$2"
-}
 
 # Go to the root of the repository we with to act upon
 STARTING_DIR="$(pwd)"
@@ -478,7 +489,7 @@ SUBMODULE_PATH=""
 
 # Debugging mode - lots of useful debug information gets shown
 # when you change this to 1
-: ${DEBUG:=0}
+: ${DEBUG:=""}
 
 # Enable colors - you can use "yes" for always use colors, "no" to never use
 # colors, or "auto" for them to be automatically applied if using a terminal

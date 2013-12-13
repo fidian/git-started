@@ -6,6 +6,9 @@
 
 FAILURES=0
 TESTS=0
+if [ ! -z "$DEBUG" ]; then
+    set -x
+fi
 
 function FAIL() {
 	echo "FAIL"
@@ -118,6 +121,7 @@ TEMP_REPO="$(MAKE_REPO)"
 for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submodule/dir:true /dir/submodule/dir:true; do
 	EXPECTED="${DIR_RESULT##*:}"
 	INPUT="${DIR_RESULT%:*}"
+    unset CACHED_IS_SUBMODULE
 
 	TEST "is_submodule repo${INPUT} = $EXPECTED"
 
@@ -134,6 +138,36 @@ for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submod
 	fi
 done
 rm -rf "$TEMP_REPO"
+
+
+#
+# on_exit and on_exit_trap
+#
+TEST "on_exit and on_exit_trap"
+FAIL "No tests exist"
+
+
+#
+# random_string
+#
+TEST "random_string 12 has right length"
+EXPECTED="xxxxxxxxxxxx"
+random_string ACTUAL 12
+ACTUAL="$(echo "$ACTUAL" | tr "a-zA-Z0-9" x)"
+if [ "$ACTUAL" == "$EXPECTED" ]; then
+    PASS
+else
+    FAIL "got \"$ACTUAL\""
+fi
+
+random_string ONE 32
+random_string TWO 32
+TEST "random_string $ONE != $TWO"
+if [ "$ONE" != "$TWO" ]; then
+    PASS
+else
+    FAIL "they matched"
+fi
 
 
 #
@@ -184,75 +218,107 @@ TEST "run_helpers"
 # Check that the original filename isn't altered?
 # Check that the target exists if one is specified
 # If no target, check that the original is used
+# CHeck that extra arguments are all passed to the script
 FAIL "no tests exist"
 
 
 #
 # stat_file
 #
-TEST "stat_file temporary_file"
 # The "stat" of a file should change if the MD5 (content), size, owner,
 # group, or mode changes.  If there are other things to check that would be
 # tracked by git, then those too should be checked.
 # This should return a single line describing a file.
-FN1="$(temporary_file)"
-FN2="$(temporary_file)"
-if [ -z "$FN1" ] || [ -z "$FN2" ] || [ "$FN1" == "$FN2" ]; then
-	FAIL "test failed because temporary_file routine does not work"
+temporary_directory TEMP_DIR
+FN1="$TEMP_DIR/fn1"
+FN2="$TEMP_DIR/fn2"
+echo "Here is some content" >> $FN1
+chmod a-w "$FN1"
+sleep 2 # Guarantee timestamp mismatches, even on FAT-based systems
+
+TEST "stat_file non-empty string"
+STAT1="$(stat_file "$FN1")"
+if [ -z "$STAT1" ]; then
+    FAIL "Empty sting returned for stat"
 else
-	PASS
+    PASS
+fi
 
-	echo "Here is some content" >> $FN1
-	chmod a-w "$FN1"
-	sleep 2 # Guarantee timestamp mismatches, even on FAT-based systems
+TEST "stat_file different mode"
+cp -p "$FN1" "$FN2"
+chmod a+w "$FN2"
+if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
+    FAIL "File mode has changed"
+else
+    PASS
+fi
 
-	TEST "stat_file non-empty string"
-	STAT1="$(stat_file "$FN1")"
-	if [ -z "$STAT1" ]; then
-		FAIL "Empty sting returned for stat"
-	else
-		PASS
-	fi
+TEST "stat_file different timestamp"
+echo "Here is some content" >> $FN2
+if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
+    FAIL "timestamps are different"
+else
+    PASS
+fi
 
-	TEST "stat_file different mode"
-	cp -p "$FN1" "$FN2"
-	chmod a+w "$FN2"
-	if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
-		FAIL "File mode has changed"
-	else
-		PASS
-	fi
+TEST "stat_file same"
+cp -p "$FN1" "$FN2"
+if [ "$(stat_file "$FN2")" != "$STAT1" ]; then
+    FAIL "Everything is the same and this should match"
+else
+    PASS
+fi
+rm -rf "$TEMP_DIR"
 
-	TEST "stat_file different timestamp"
-	echo "Here is some content" >> $FN2
-	if [ "$(stat_file "$FN2")" == "$STAT1" ]; then
-		FAIL "timestamps are different"
-	else
-		PASS
-	fi
 
-	TEST "stat_file same"
-	cp -p "$FN1" "$FN2"
-	if [ "$(stat_file "$FN2")" != "$STAT1" ]; then
-		FAIL "Everything is the same and this should match"
-	else
-		PASS
-	fi
+#
+# success_save
+#
+TEST "success_save"
+# test on error stdout and stderr are sent out
+# test on success stdout is written and stderr is removed, no output
+FAIL "no tests exist"
+
+
+#
+# temporary_directory
+#
+TEST "temporary_directory"
+# test directory is created
+# test directory is random
+# test directory has mode 0700
+FAIL "no tests exist"
+
+
+#
+# temporary_directory_location
+#
+temporary_directory_location DIR
+TEST "temporary_directory_location is valid directory"
+if [ -d "$DIR" ]; then
+    PASS
+else
+    FAIL "not a directory"
 fi
 
 
 #
-# temporary_file
+# temporary_name
 #
-TEST "temporary_file"
-FN="$(temporary_file)"
-if [ -z "$FN" ]; then
-	FAIL "no filename returned"
-elif [ ! -f "$FN" ]; then
-	FAIL "file was not created"
+temporary_name NAME
+TEST "temporary_name does not exist"
+if [ ! -e "$NAME" ]; then
+    PASS
 else
-	PASS
-	rm "$FN"
+    FAIL "\"$NAME\" exists"
+fi
+
+TEST "temporary_name can be created"
+touch "$NAME"
+if [ $? -eq 0 ]; then
+    PASS
+else
+    FAIL "can not create a file named \"$NAME\""
 fi
 
 
@@ -289,7 +355,7 @@ TEMP_REPO="$(MAKE_REPO)"
 	ln -s ../util/git/hooks .git/hooks
 	for F in bin/test_path util/bin/test_path; do
 		# git-started-setup uses a method like this to determine
-		# where its repository's root is located
+		# where its repository root is located
 		echo "#!/bin/bash" > "$TEMP_REPO/$F"
 		echo "echo \"$F\"" >> "$TEMP_REPO/$F"
 		chmod 755 "$TEMP_REPO/$F"
