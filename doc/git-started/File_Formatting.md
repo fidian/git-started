@@ -106,16 +106,16 @@ There's several points you need to follow in order to plug in your own pretty pr
 
 * The `util/helpers/pretty_print.d` and `util/helpers/lint_check.d` directories have subdirectories based on file type.  If you are processing a `css` file, for instance, a formatter would first be sought in the `css/` folder and then in the `_common/` folder.
 
-* These scripts are designed to be called by the pretty printer or the lint checker.  They are not intended to be used directly from the command line.
+* These scripts are designed to be called by the pretty printer or the lint checker.  They are not intended to be used directly from the command line, as they rely on functions and variables set up by the `git-started-setup` script.
 
-* The script must be marked as executable if you want it to run.
+* The scripts must be marked as executable if you want it to run.
 
-* When the script is not passed a file, it must return 0 if the command is installed or non-zero if there's a problem using that command.
+* The script does two different things, which depends on whether or not a filename was passed to the script.
+    * With no arguments, the script detects if the command is installed and is working.  Exit with non-zero to indicate failure.
+    * When linters are passed a filename, it is supposed to check the file for problems.  If any are found, write to stdout or stderr and return a non-zero status.
+    * When pretty printers are passed a filename, they are supposed to pretty print the file in-place.  Return zero on success, or write useful information to stdout or stderr if there is an error.
 
-* When the script is passed a file, it is expected to lint check or pretty print the specified file.  For pretty printing, the pretty printed output should replace the content.
+* Successful runs may hide warnings and errors, so the return status is very important.
 
-* During execution, the warnings and errors should be suppressed.  If there are any problems detected, first call `lint_error` or `pretty_error` with the real filename, then the problems should be displayed.
+* `$OPTIONS` are the options defined in `git-started-setup` without the prefix.  It will be `$LINT_PHP_CLI_OPTIONS`, `$PRETTY_PHP_PHPBEAUTIFIER_OPTIONS` or whatever applies to your script.
 
-* Environment variables are available to your script:
-    * `$OPTIONS` are the options defined in git-started-setup, with the prefix removed.  It will be `$LINT_PHP_CLI_OPTIONS` or `$PRETTY_PHP_PHPBEAUTIFIER_OPTIONS` or whatever applies to your script.
-    * `$TARGET` is the real file that we are processing.  The pretty printer works strictly on a copy of the target to help avoid problems and this variable should only be used for showing errors.
