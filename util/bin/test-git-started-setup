@@ -4,8 +4,11 @@
 
 . "${0%/*}"/git-started-setup
 
+# Must return three octal digits
 function get_file_permissions() {
-    /usr/bin/stat -c "%a" "$1" || stat -f "%p" "$1"
+    local RESULT
+    RESULT="$(/usr/bin/stat -c "%a" "$1" > /dev/null || stat -f "%p" "$1")"
+    echo "${RESULT: -3}"
 }
 
 FAILURES=0
@@ -22,7 +25,7 @@ function FAIL() {
 
 function MAKE_REPO() {
 	local TEMP_REPO
-	TEMP_REPO="$(mktemp -d)"
+    temporary_directory TEMP_REPO
 	(
 		cd "$TEMP_REPO"
 		git init
