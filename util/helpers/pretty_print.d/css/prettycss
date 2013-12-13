@@ -3,17 +3,5 @@
 if [ -z "$1" ]; then
 	test_for_program prettycss
 else 
-	local FILE="$1"
-	local TEMP="$(temporary_file)"
-
-	prettycss $OPTIONS "$FILE" > "$TEMP" 2>&1
-
-	if [ $? -ne 0 ]; then
-		pretty_error "$TARGET"
-		prettycss $OPTIONS "$FILE" > /dev/null
-	else
-		# mv does not preserve destination file permissions
-		cat "$TEMP" > "$FILE"
-		rm "$TEMP"
-	fi
+    success_save "$1" prettycss $OPTIONS "$1"
 fi

@@ -3,17 +3,5 @@
 if [ -z "$1" ]; then
 	test_for_program php_beautifier
 else 
-	local FILE="$1"
-	local TEMP="$(temporary_file)"
-
-	php_beautifier $OPTIONS --input "$FILE" --output "$TEMP" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		pretty_error "$TARGET"
-		php_beautifier $OPTIONS --input "$FILE" --output /dev/null
-	else
-		# mv does not preserve destination file permissions
-		cat "$TEMP" > "$FILE"
-		rm "$TEMP"
-	fi
+    success-save "$1" php_beautifier $OPTIONS --input "$FILE" --output -
 fi

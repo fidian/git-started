@@ -3,12 +3,5 @@
 if [ -z "$1" ]; then
 	test_for_program php
 else 
-	local FILE="$1"
-
-	php $OPTIONS "$FILE" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		lint_error "$FILE"
-		php $OPTIONS "$FILE" 2>&1
-	fi
+	php $OPTIONS "$1"
 fi

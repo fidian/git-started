@@ -3,12 +3,5 @@
 if [ -z "$1" ]; then
 	test_for_program sass
 else
-	local FILE="$1"
-
-	sass $OPTIONS "$FILE" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		lint_error "$FILE"
-		sass $OPTIONS "$FILE" 2>&1
-	fi
+	sass $OPTIONS "$1"
 fi

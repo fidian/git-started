@@ -11,7 +11,9 @@ if [ -L "$FILE" ]; then
 	exit 0
 fi
 
-TEMPFILE="$(temporary_file)"
+# To be safe, we operate on a copy of the file
+temporary_directory TEMPDIR
+TEMPFILE="${TEMPDIR}/${FILE##*/}"
 cp -p "$FILE" "$TEMPFILE"
 BEFORE="$(stat_file "$TEMPFILE")"
 debug "Pretty print before file stat: $BEFORE"
@@ -36,9 +38,6 @@ if [ "$BEFORE" != "$AFTER" ]; then
 	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printed:${COLOR_RESET}  ${COLOR_PRETTY_FILE}$FILE${COLOR_RESET}"
 	echo "Review these changes then add/commit again"
 	exit 1
-else
-	# Cleanup
-	rm "$TEMPFILE"
 fi
 
 exit 0

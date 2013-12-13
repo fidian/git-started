@@ -3,12 +3,5 @@
 if [ -z "$1" ]; then
 	test_for_program jsl
 else
-	local FILE="$1"
-
-	jsl $OPTIONS "$FILE" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		lint_error "$FILE"
-		jsl $OPTIONS "$FILE" 2>&1
-	fi
+	jsl $OPTIONS "$1"
 fi

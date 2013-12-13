@@ -5,21 +5,17 @@
 # Syntax:
 #
 #     pretty_print filename
+#         -- Normal usage, overwrites filename
 #     pretty_print temporary_filename actual_filename
+#         -- When called from a git hook, only works on temporary file
 #
-# When you use a temporary file, the file extension may change, which is
-# why the second form is allowed
-
-function pretty_error() {
-	local FILE="$1"
-
-	echo_clear_line
-	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty print error:${COLOR_RESET}  ${COLOR_PRETTY_FILENAME}$TARGET${COLOR_RESET}"
-}
+# When you use a temporary file, we keep track of the original for the purpose
+# of providing useful error messages when there are problems.
 
 TARGET_FILE="$1"
 REAL_FILE="$2"
 . "${0%/*}"/git-started-setup
+temporary_directory OUTPUT_DIR
 TARGET_FILE="$(resolve_path "$STARTING_DIR" "$TARGET_FILE")"
 
 if [ ! -z "$REAL_FILE" ]; then
@@ -28,16 +24,19 @@ else
 	REAL_FILE="$TARGET_FILE"
 fi
 
-run_helpers "PRETTY" "pretty_print.d" "$TARGET_FILE" "$REAL_FILE"
+run_helpers "PRETTY" "pretty_print.d" "$TARGET_FILE" > "$OUTPUT_DIR/stdout" 2> "$OUTPUT_DIR/stderr"
+
 RESULT=$?
 
 if [ $RESULT -ne 0 ]; then
-	exit $RESULT
+    # Error trying to pretty print
+	echo_clear_line
+	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty print error:${COLOR_RESET}  ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
 fi
 
 if [ ! -s "$TARGET_FILE" ]; then
-	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printing generated a zero-byte file for${COLOR_RESET} ${COLOR_PRETTY_FILENAME}$TARGET${COLOR_RESET}"
-	exit 1
+	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printing generated a zero-byte file for${COLOR_RESET} ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
+    RESULT=1
 fi
 
-exit 0
+exit $RESULT

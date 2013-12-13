@@ -1,13 +1,24 @@
 #!/bin/bash
 
 function lint_error() {
-	local FILE="$1"
-
 	echo_clear_line
-	echo_escape "${COLOR_LINT_ERROR}Lint error:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$FILE${COLOR_RESET}"
 }
 
-FILE="$1"
+TARGET_FILE="$1"
 . "${0%/*}"/git-started-setup
-FILE="$(resolve_path "$STARTING_DIR" "$FILE")"
-run_helpers "LINT" "lint_check.d" "$FILE"
+FILE="$(resolve_path "$STARTING_DIR" "$TARGET_FILE")"
+temporary_directory OUTPUT_DIR
+OUTPUT="$OUTPUT_DIR/output"
+debug "lint_check running helpers"
+run_helpers "LINT" "lint_check.d" "$FILE" > "$OUTPUT" 2>&1
+RESULT=$?
+debug "lint_check running helpers result $RESULT"
+
+if [ $RESULT -ne 0 ]; then
+    # On lint errors, show some colorful messages
+    echo_clear_line
+	echo_escape "${COLOR_LINT_ERROR}Lint error:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$TARGET_FILE${COLOR_RESET}"
+    cat "$OUTPUT"
+fi
+
+exit $RESULT

@@ -3,17 +3,5 @@
 if [ -z "$1" ]; then
 	test_for_program js-beautify
 else 
-	local FILE="$1"
-	local TEMP="$(temporary_file)"
-
-	js-beautify $OPTIONS --file "$FILE" --outfile "$TEMP" > /dev/null 2>&1
-
-	if [ $? -ne 0 ]; then
-		pretty_error "$TARGET"
-		js-beautify $OPTIONS --file "$FILE" --outfile "/dev/null"
-	else
-		# mv does not preserve destination file permissions
-		cat "$TEMP" > "$FILE"
-		rm "$TEMP"
-	fi
+	success_save "$1" js-beautify $OPTIONS --file "$FILE"
 fi
