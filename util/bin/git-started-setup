@@ -21,7 +21,7 @@
 
 # Write out a debug message to stderr if debug mode enabled
 function debug() {
-    if [ "$DEBUG" -ne 0 ]; then
+    if [ ! -z "$DEBUG" ]; then
         echo ${1+"$@"} >&2
     fi
 }
@@ -478,7 +478,7 @@ SUBMODULE_PATH=""
 
 # Debugging mode - lots of useful debug information gets shown
 # when you change this to 1
-: ${DEBUG:=0}
+: ${DEBUG:=""}
 
 # Enable colors - you can use "yes" for always use colors, "no" to never use
 # colors, or "auto" for them to be automatically applied if using a terminal
