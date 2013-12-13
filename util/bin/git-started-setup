@@ -389,11 +389,6 @@ function temporary_directory_location() {
 function temporary_file() {
     local FILE
 
-    while true; do
-        FILE="$(temporary_name)"
-        if [ ! -e "$FILE" ]; then
-            touch "$FILE"
-            
     if test_for_program mktemp; then
         debug "temporary_file mktemp"
         mktemp 2> /dev/null || mktemp -t git-started
