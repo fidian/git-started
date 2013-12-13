@@ -4,6 +4,10 @@
 
 . "${0%/*}"/git-started-setup
 
+function get_file_permissions() {
+    /usr/bin/stat -c "%a" "$1" || stat -f "%p" "$1"
+}
+
 FAILURES=0
 TESTS=0
 if [ ! -z "$DEBUG" ]; then
@@ -274,20 +278,117 @@ rm -rf "$TEMP_DIR"
 #
 # success_save
 #
-TEST "success_save"
-# test on error stdout and stderr are sent out
-# test on success stdout is written and stderr is removed, no output
-FAIL "no tests exist"
+temporary_directory DIR
+OUTPUT="$DIR/output"
+STDOUT="$DIR/stdout"
+STDERR="$DIR/stderr"
+function good_result() {
+    echo "good stdout"
+    echo "good stderr" >&2
+    return 0
+}
+function bad_result() {
+    echo "bad stdout"
+    echo "bad stderr" >&2
+    return 122
+}
+function test_file_contents() {
+    TEST "$1"
+    if [ -f "$2" ]; then
+        if [ "$(cat "$2")" == "$3" ]; then
+            PASS
+        else
+            FAIL "$4"
+        fi
+    else
+        FAIL "output file should have been created"
+    fi
+}
+
+success_save "$OUTPUT" good_result > "$STDOUT" 2> "$STDERR"
+RESULT=$?
+
+test_file_contents "success_save success output" "$OUTPUT" "good stdout" "output not funneled into file"
+test_file_contents "success_save success stdout" "$STDOUT" "" "stdout should be empty"
+test_file_contents "success_save success stderr" "$STDERR" "" "stderr should be empty"
+
+TEST "success_save success return code"
+if [ $RESULT -eq 0 ]; then
+    PASS
+else
+    FAIL "received $RESULT instead of 0"
+fi
+
+rm "$OUTPUT" "$STDOUT" "$STDERR"
+success_save "$OUTPUT" bad_result > "$STDOUT" 2> "$STDERR"
+RESULT=$?
+
+TEST "success_save failure output not created"
+if [ ! -e "$OUTPUT" ]; then
+    PASS
+else
+    FAILURE "output file created anyway"
+fi
+
+TEST "success_save failure output"
+if [ ! -e "$OUTPUT" ]; then
+    PASS
+else
+    FAILURE "output file should not have been created"
+fi
+
+test_file_contents "success_save failure stdout" "$STDOUT" "bad stdout" "stdout should be empty"
+test_file_contents "success_save failure stderr" "$STDERR" "bad stderr" "stderr should be empty"
+
+TEST "success_save success return code"
+if [ $RESULT -eq 122 ]; then
+    PASS
+else
+    FAIL "received $RESULT instead of 122"
+fi
+
+echo "unchanged output" > "$OUTPUT"
+chmod 701 "$OUTPUT"
+success_save "$OUTPUT" good_result > /dev/null 2>&1
+
+TEST "success_save success preserve file permissions"
+ACTUAL="$(get_file_permissions "$OUTPUT")"
+if [ "$ACTUAL" == "701" ]; then
+    PASS
+else
+    FAIL "expected 701 but file permissions were $ACUTAL"
+fi
+
+test_file_contents "success_save success output overwritten" "$OUTPUT" "good stdout" "output not properly overwritten"
 
 
 #
 # temporary_directory
 #
-TEST "temporary_directory"
-# test directory is created
-# test directory is random
-# test directory has mode 0700
-FAIL "no tests exist"
+temporary_directory DIR
+
+TEST "temporary_directory directory is created"
+if [ -d "$DIR" ]; then
+    PASS
+else
+    FAIL "\"$DIR\" does not exist"
+fi
+
+TEST "temporary_directory can be called repeatedly with different results"
+temporary_directory DIR2
+if [ "$DIR" != "$DIR2" ]; then
+    PASS
+else
+    FAIL "created \"$DIR\" and \"$DIR2\""
+fi
+
+TEST "temporary_directory has a restrictive mode"
+PERMS="$(get_file_permissions "$DIR")"
+if [ "${PERMS: -2}" == "00" ]; then
+    PASS
+else
+    FAIL "permissions were $PERMS"
+fi
 
 
 #
