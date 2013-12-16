@@ -18,32 +18,32 @@ if [ ! -z "$DEBUG" ]; then
 fi
 
 function FAIL() {
-	echo "FAIL"
-	echo " ****** $1"
-	: $((FAILURES++))
+    echo "FAIL"
+    echo " ****** $1"
+    : $((FAILURES++))
 }
 
 # Parameters: ResultVariableName
 function MAKE_REPO() {
-	local TEMP_REPO
+    local TEMP_REPO
     temporary_directory TEMP_REPO
-	(
-		cd "$TEMP_REPO"
-		git init
-		echo "Test repo" > test.txt
-		git add test.txt
-		git commit -m "Initial commit"
-	) > /dev/null
+    (
+        cd "$TEMP_REPO"
+        git init
+        echo "Test repo" > test.txt
+        git add test.txt
+        git commit -m "Initial commit"
+    ) > /dev/null
     local "$1" && indirect $1 "$TEMP_REPO"
 }
 
 function PASS() {
-	echo "ok"
+    echo "ok"
 }
 
 function TEST() {
-	printf "%s" "$1: "
-	: $((TESTS++))
+    printf "%s" "$1: "
+    : $((TESTS++))
 }
 
 
@@ -53,9 +53,9 @@ function TEST() {
 TEST "bash \$BASH_SOURCE"
 
 if [ -z "$BASH_SOURCE" ]; then
-	FAIL "Not set"
+    FAIL "Not set"
 else
-	PASS
+    PASS
 fi
 
 TEST "bash +="
@@ -63,9 +63,9 @@ A="AAA"
 A+="BBB"
 
 if [ "$A" != "AAABBB" ]; then
-	FAIL "Mismatch: got '$A' wanted 'AAABBB'"
+    FAIL "Mismatch: got '$A' wanted 'AAABBB'"
 else
-	PASS
+    PASS
 fi
 
 
@@ -73,16 +73,16 @@ fi
 # file_extension
 #
 for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././dir.name/exe.txt/file.me:me; do
-	EXPECTED="${FILE##*:}"
-	INPUT="${FILE%:*}"
-	TEST "file_extension \"$INPUT\" = \"$EXPECTED\""
+    EXPECTED="${FILE##*:}"
+    INPUT="${FILE%:*}"
+    TEST "file_extension \"$INPUT\" = \"$EXPECTED\""
     file_extension ACTUAL "$INPUT"
 
-	if [ "$ACTUAL" == "$EXPECTED" ]; then
-		PASS
-	else
-		FAIL "got \"$ACTUAL\""
-	fi
+    if [ "$ACTUAL" == "$EXPECTED" ]; then
+        PASS
+    else
+        FAIL "got \"$ACTUAL\""
+    fi
 done
 
 
@@ -97,16 +97,16 @@ FAIL "No tests exist"
 # get_file_type
 #
 for FILE in a.css:css b.js:js c.html:html cc.htm:html d.php:php dd.inc:php e.txt:unknown; do
-	EXPECTED="${FILE##*:}"
-	INPUT="${FILE%:*}"
-	TEST "get_file_type \"$INPUT\" = \"$EXPECTED\""
-	get_file_type ACTUAL "$INPUT"
+    EXPECTED="${FILE##*:}"
+    INPUT="${FILE%:*}"
+    TEST "get_file_type \"$INPUT\" = \"$EXPECTED\""
+    get_file_type ACTUAL "$INPUT"
 
-	if [ "$ACTUAL" == "$EXPECTED" ]; then
-		PASS
-	else
-		FAIL "got \"$ACTUAL\""
-	fi
+    if [ "$ACTUAL" == "$EXPECTED" ]; then
+        PASS
+    else
+        FAIL "got \"$ACTUAL\""
+    fi
 done
 
 
@@ -127,23 +127,23 @@ MAKE_REPO TEMP_REPO
 ) > /dev/null
 
 for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submodule/dir:true /dir/submodule/dir:true; do
-	EXPECTED="${DIR_RESULT##*:}"
-	INPUT="${DIR_RESULT%:*}"
+    EXPECTED="${DIR_RESULT##*:}"
+    INPUT="${DIR_RESULT%:*}"
     unset CACHED_IS_SUBMODULE
 
-	TEST "is_submodule repo${INPUT} = $EXPECTED"
+    TEST "is_submodule repo${INPUT} = $EXPECTED"
 
-	if (cd "${TEMP_REPO}${INPUT}"; is_submodule); then
-		ACTUAL="true"
-	else
-		ACTUAL="false"
-	fi
+    if (cd "${TEMP_REPO}${INPUT}"; is_submodule); then
+        ACTUAL="true"
+    else
+        ACTUAL="false"
+    fi
 
-	if [ "$ACTUAL" == "$EXPECTED" ]; then
-		PASS
-	else
-		FAIL "got \"$ACTUAL\""
-	fi
+    if [ "$ACTUAL" == "$EXPECTED" ]; then
+        PASS
+    else
+        FAIL "got \"$ACTUAL\""
+    fi
 done
 rm -rf "$TEMP_REPO"
 
@@ -182,18 +182,18 @@ fi
 # resolve_path
 #
 for FILE in /a,b:/a/b /c,d/e:/c/d/e f/,g/:f//g/ h/i,/j/k:/j/k; do
-	EXPECTED="${FILE##*:}"
-	INPUT="${FILE%:*}"
-	DIRNAME="${INPUT%,*}"
-	FILENAME="${INPUT##*,}"
-	TEST "resolve_path \"$DIRNAME\" \"$FILENAME\" = \"$EXPECTED\""
-	resolve_path ACTUAL "$DIRNAME" "$FILENAME"
+    EXPECTED="${FILE##*:}"
+    INPUT="${FILE%:*}"
+    DIRNAME="${INPUT%,*}"
+    FILENAME="${INPUT##*,}"
+    TEST "resolve_path \"$DIRNAME\" \"$FILENAME\" = \"$EXPECTED\""
+    resolve_path ACTUAL "$DIRNAME" "$FILENAME"
 
-	if [ "$ACTUAL" == "$EXPECTED" ]; then
-		PASS
-	else
-		FAIL "got \"$ACTUAL\""
-	fi
+    if [ "$ACTUAL" == "$EXPECTED" ]; then
+        PASS
+    else
+        FAIL "got \"$ACTUAL\""
+    fi
 done
 
 
@@ -432,16 +432,16 @@ fi
 #
 TEST "test_for_program miss"
 if ! test_for_program totally_unexpected_and_invalid_program_we_hope; then
-	PASS
+    PASS
 else
-	FAIL "says bad program name exists"
+    FAIL "says bad program name exists"
 fi
 
 TEST "test_for_program hit"
 if test_for_program ls; then
-	PASS
+    PASS
 else
-	FAIL "ls was not found"
+    FAIL "ls was not found"
 fi
 
 
@@ -454,17 +454,17 @@ fi
 # Eliminate that problem, I use readlink for the git hooks.
 MAKE_REPO TEMP_REPO
 (
-	cd "$TEMP_REPO"
-	mkdir -p bin util/bin util/git/hooks
-	rm -rf .git/hooks
-	ln -s ../util/git/hooks .git/hooks
-	for F in bin/test_path util/bin/test_path; do
-		# git-started-setup uses a method like this to determine
-		# where its repository root is located
-		echo "#!/bin/bash" > "$TEMP_REPO/$F"
-		echo "echo \"$F\"" >> "$TEMP_REPO/$F"
-		chmod 755 "$TEMP_REPO/$F"
-	done
+    cd "$TEMP_REPO"
+    mkdir -p bin util/bin util/git/hooks
+    rm -rf .git/hooks
+    ln -s ../util/git/hooks .git/hooks
+    for F in bin/test_path util/bin/test_path; do
+        # git-started-setup uses a method like this to determine
+        # where its repository root is located
+        echo "#!/bin/bash" > "$TEMP_REPO/$F"
+        echo "echo \"$F\"" >> "$TEMP_REPO/$F"
+        chmod 755 "$TEMP_REPO/$F"
+    done
 ) > /dev/null
 TEST "working directory (git hooks + setup)"
 
@@ -477,9 +477,9 @@ chmod 755 "$TEMP_REPO/util/git/hooks/post-checkout"
 ACTUAL="$(cd "$TEMP_REPO"; .git/hooks/post-checkout)"
 EXPECTED="util/bin/test_path"
 if [ "$ACTUAL" == "$EXPECTED" ]; then
-	PASS
+    PASS
 else
-	FAIL "Expecting $EXPECTED but got $ACTUAL"
+    FAIL "Expecting $EXPECTED but got $ACTUAL"
 fi
 rm -rf "$TEMP_REPO"
 
@@ -492,35 +492,35 @@ SOURCE="$(pwd)"
 TEST "submodule - pre-commit"
 MAKE_REPO TEMP_REPO
 (
-	cd "$TEMP_REPO"
-	git submodule add "$SOURCE" "git-started"
-	git commit -m "Adding git-started"
-	git-started/util/bin/setup_repository
-	echo "NO""COMMIT" > test2.txt
-	git add test2.txt
+    cd "$TEMP_REPO"
+    git submodule add "$SOURCE" "git-started"
+    git commit -m "Adding git-started"
+    git-started/util/bin/setup_repository
+    echo "NO""COMMIT" > test2.txt
+    git add test2.txt
 ) > /dev/null
 if ( cd "$TEMP_REPO"; git commit -m "checking pre-commit hook" > /dev/null 2>&1 ); then
-	FAIL "the commit should have been blocked"
+    FAIL "the commit should have been blocked"
 else
-	PASS
+    PASS
 fi
 rm -rf "$TEMP_REPO"
 
 TEST "merged - pre-commit"
 MAKE_REPO TEMP_REPO
 (
-	cd "$TEMP_REPO"
-	git remote add origin "$SOURCE"
-	git fetch origin
-	git merge -m 'auto merge' origin/master
-	util/bin/setup_repository
-	echo "NO""COMMIT" > test2.txt
-	git add test2.txt
+    cd "$TEMP_REPO"
+    git remote add origin "$SOURCE"
+    git fetch origin
+    git merge -m 'auto merge' origin/master
+    util/bin/setup_repository
+    echo "NO""COMMIT" > test2.txt
+    git add test2.txt
 ) > /dev/null 2>&1
 if ( cd "$TEMP_REPO"; git commit -m "checking pre-commit hook" > /dev/null 2>&1 ); then
-	FAIL "the commit should have been blocked"
+    FAIL "the commit should have been blocked"
 else
-	PASS
+    PASS
 fi
 rm -rf "$TEMP_REPO"
 
