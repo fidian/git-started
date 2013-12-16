@@ -96,18 +96,20 @@ function get_executable() {
 
 # Echos out the file processing "submodule" or the file type for the given
 # incoming file
+#
+# Parameters:  ResultVariableName Filename
 function get_file_type() {
-    local TYPE="$(run_all_scripts util/helpers/file_detection.d "$1")"
+    local TYPE="$(run_all_scripts util/helpers/file_detection.d "$2")"
     debug "get_file_type result '$TYPE'"
 
     if [ -z "$TYPE" ]; then
         # Failed to detect the type
         debug "get_file_type returning 'unknown'"
-        echo "unknown"
+        local "$1" && indirect $1 "unknown"
         return 1
     fi
 
-    echo "$TYPE"
+    local "$1" && indirect $1 "$TYPE"
     return 0
 }
 
@@ -220,11 +222,11 @@ function random_string() {
 # into a single slash.
 # Echos the result with quotes.
 # Usage:  . "${0%/*}"/git-started-setup    # Set STARTING_DIR
-#         FILES="$(resolve_paths "$STARTING_DIR" ${1+"$@"})"
-# Parameters:  DirectoryFromWhence FilenameOrPath
+#         resolve_path FILES "$STARTING_DIR" ${1+"$@"})
+# Parameters:  ResultVariableName DirectoryFromWhence FilenameOrPath
 function resolve_path() {
-    local WHENCE="$1" # Directory that we use for resolution
-    local FILE="$2" # Relative or absolute file/path
+    local WHENCE="$2" # Directory that we use for resolution
+    local FILE="$3" # Relative or absolute file/path
     local RESULT="$FILE" # Our end result
 
     if [ "${FILE:0:1}" != "/" ]; then
@@ -232,7 +234,7 @@ function resolve_path() {
     fi
 
     debug "resolve_path '$WHENCE' '$FILE' becomes '$RESULT'"
-    echo "$RESULT"
+    local "$1" && indirect $1 "$RESULT"
 }
 
 # Run all scripts in the given subdirectory, like the run-parts command.
@@ -289,9 +291,10 @@ function run_helpers() {
     shift # Remove PREFIX
     shift # Remove HELPER_DIR
 
-    local FILE_TYPE="$(get_file_type "$FILE")"
+    local FILE_TYPE
     local CONFIGS_VAR_NAME="${PREFIX}_$( echo "$FILE_TYPE" | tr "a-z" "A-Z" )"
     local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
+    get_file_type FILE_TYPE "$FILE"
     CONFIGS=${!CONFIGS_VAR_NAME}
     HELPER_DIR="util/helpers/${HELPER_DIR}"
     debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' ${1+"$@"}"
@@ -463,8 +466,8 @@ function test_for_program() {
     if [ $RESULT -eq 0 ]; then
         # A string was reported back
         if [ ! -z "$WHICH" ]; then
-            # That string is a real filename
-            if [ -f "$WHICH" ]; then
+            # That string is a real executable
+            if [ -x "$WHICH" ]; then
                 return 0
             else
                 debug "test_for_program '$WHICH' file not found"
@@ -499,18 +502,18 @@ SUBMODULE_PATH=""
 if ! is_submodule; then
     TOOL_DIR="util"
     TARGET_DIR="$(pwd)"
-    LOCAL_DIR="$(pwd)/local"
+    LOCAL_DIR="$TARGET_DIR/local"
 else
     TOOL_DIR="${SUBMODULE_PATH}/util"
     cd ..
     cd "$(git rev-parse --show-toplevel)" # Up to the root of the real repo
     TARGET_DIR="$(pwd)"
-    LOCAL_DIR="$(pwd)/local"
+    LOCAL_DIR="$TARGET_DIR/local"
 fi
 
 # Add node programs to the path
-if [ -d "node_modules/.bin" ]; then
-    PATH="$(pwd)/node_modules/.bin:$PATH"
+if [ -d "$TARGET_DIR/node_modules/.bin" ]; then
+    PATH="$TARGET_DIR/node_modules/.bin:$PATH"
 fi
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking

@@ -16,10 +16,10 @@ TARGET_FILE="$1"
 REAL_FILE="$2"
 . "${0%/*}"/git-started-setup
 temporary_directory OUTPUT_DIR
-TARGET_FILE="$(resolve_path "$STARTING_DIR" "$TARGET_FILE")"
+resolve_path TARGET_FILE "$STARTING_DIR" "$TARGET_FILE"
 
 if [ ! -z "$REAL_FILE" ]; then
-	REAL_FILE="$(resolve_path "$STARTING_DIR" ${REAL_FILE})"
+	resolve_path REAL_FILE "$STARTING_DIR" ${REAL_FILE}
 else
 	REAL_FILE="$TARGET_FILE"
 fi

@@ -7,7 +7,7 @@
 # Must return three octal digits
 function get_file_permissions() {
     local RESULT
-    RESULT="$(/usr/bin/stat -c "%a" "$1" > /dev/null || stat -f "%p" "$1")"
+    RESULT="$(/usr/bin/stat -c "%a" "$1" 2> /dev/null || stat -f "%p" "$1")"
     echo "${RESULT: -3}"
 }
 
@@ -23,6 +23,7 @@ function FAIL() {
 	: $((FAILURES++))
 }
 
+# Parameters: ResultVariableName
 function MAKE_REPO() {
 	local TEMP_REPO
     temporary_directory TEMP_REPO
@@ -33,7 +34,7 @@ function MAKE_REPO() {
 		git add test.txt
 		git commit -m "Initial commit"
 	) > /dev/null
-	echo "$TEMP_REPO"
+    local "$1" && indirect $1 "$TEMP_REPO"
 }
 
 function PASS() {
@@ -99,7 +100,7 @@ for FILE in a.css:css b.js:js c.html:html cc.htm:html d.php:php dd.inc:php e.txt
 	EXPECTED="${FILE##*:}"
 	INPUT="${FILE%:*}"
 	TEST "get_file_type \"$INPUT\" = \"$EXPECTED\""
-	ACTUAL="$(get_file_type "$INPUT")"
+	get_file_type ACTUAL "$INPUT"
 
 	if [ "$ACTUAL" == "$EXPECTED" ]; then
 		PASS
@@ -115,14 +116,14 @@ done
 
 # First, create a test repository that has a specific directory structure
 # for testing
-TEMP_REPO="$(MAKE_REPO)"
+MAKE_REPO TEMP_REPO
 (
-	cd "$TEMP_REPO"
-	mkdir dir
-	git submodule add ./ submodule
-	git submodule add ./ dir/submodule
-	mkdir submodule/dir
-	mkdir dir/submodule/dir
+    cd "$TEMP_REPO"
+    mkdir dir
+    git submodule add ./ submodule
+    git submodule add ./ dir/submodule
+    mkdir submodule/dir
+    mkdir dir/submodule/dir
 ) > /dev/null
 
 for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submodule/dir:true /dir/submodule/dir:true; do
@@ -186,7 +187,7 @@ for FILE in /a,b:/a/b /c,d/e:/c/d/e f/,g/:f//g/ h/i,/j/k:/j/k; do
 	DIRNAME="${INPUT%,*}"
 	FILENAME="${INPUT##*,}"
 	TEST "resolve_path \"$DIRNAME\" \"$FILENAME\" = \"$EXPECTED\""
-	ACTUAL="$(resolve_path "$DIRNAME" "$FILENAME")"
+	resolve_path ACTUAL "$DIRNAME" "$FILENAME"
 
 	if [ "$ACTUAL" == "$EXPECTED" ]; then
 		PASS
@@ -451,7 +452,7 @@ fi
 # I will set up in the test.  Doing a "cd .git/hooks/../../bin" goes to the
 # bin directory, but ". .git/hooks/../../bin/file" will use util/bin.  To
 # Eliminate that problem, I use readlink for the git hooks.
-TEMP_REPO="$(MAKE_REPO)"
+MAKE_REPO TEMP_REPO
 (
 	cd "$TEMP_REPO"
 	mkdir -p bin util/bin util/git/hooks
@@ -489,7 +490,7 @@ rm -rf "$TEMP_REPO"
 #
 SOURCE="$(pwd)"
 TEST "submodule - pre-commit"
-TEMP_REPO="$(MAKE_REPO)"
+MAKE_REPO TEMP_REPO
 (
 	cd "$TEMP_REPO"
 	git submodule add "$SOURCE" "git-started"
@@ -506,7 +507,7 @@ fi
 rm -rf "$TEMP_REPO"
 
 TEST "merged - pre-commit"
-TEMP_REPO="$(MAKE_REPO)"
+MAKE_REPO TEMP_REPO
 (
 	cd "$TEMP_REPO"
 	git remote add origin "$SOURCE"

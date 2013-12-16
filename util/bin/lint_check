@@ -6,7 +6,7 @@ function lint_error() {
 
 TARGET_FILE="$1"
 . "${0%/*}"/git-started-setup
-FILE="$(resolve_path "$STARTING_DIR" "$TARGET_FILE")"
+resolve_path FILE "$STARTING_DIR" "$TARGET_FILE"
 temporary_directory OUTPUT_DIR
 OUTPUT="$OUTPUT_DIR/output"
 debug "lint_check running helpers"
