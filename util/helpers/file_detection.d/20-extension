@@ -1,41 +1,42 @@
 #!/bin/bash
 
 file_extension EXT "$1"
+uppercase EXT "$EXT"
 
-case "${EXT,,}" in
-	css)
+case "${EXT}" in
+	CSS)
 		echo "css"
 		;;
 
-	htm|html)
+	HTM|HTML)
 		echo "html"
 		;;
 		
-	js)
+	JS)
 		echo "js"
 		;;
 
-	json)
+	JSON)
 		echo "json"
 		;;
 
-	md)
+	MD)
 		echo "markdown"
 		;;
 
-	php|inc)
+	PHP|INC)
 		echo "php"
 		;;
 
-    sass)
+    SASS)
         echo "sass"
         ;;
 	
-    scss)
+    SCSS)
         echo "scss"
         ;;
 	
-	yaml|yml)
+	YAML|YML)
 		echo "yaml"
 		;;
 

@@ -446,6 +446,27 @@ fi
 
 
 #
+# uppercase
+#
+TEST "uppercase empty string"
+uppercase ACTUAL ""
+if [ -z "$ACTUAL" ]; then
+    PASS
+else
+    FAIL "expected \"\" but got \"$ACTUAL\""
+fi
+
+INPUT="abcdefghijklmnopqrstuvwxyz0123456789 hi mom"
+TEST "uppercase \"$INPUT\""
+uppercase ACTUAL "$INPUT"
+if [ "$ACTUAL" == "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 HI MOM" ]; then
+    PASS
+else
+    FAIL "got \"$ACTUAL\""
+fi
+
+
+#
 # How the git hooks initially tie into our software
 #
 # This is a bit special as they are executed in an environment like what

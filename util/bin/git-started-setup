@@ -323,7 +323,8 @@ function run_helpers() {
             else
                 # Run in a subshell for safety
                 (
-                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
+                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS"
+                    uppercase OPTIONS_VARIABLE "$OPTIONS_VARIABLE"
                     OPTIONS="${!OPTIONS_VARIABLE}"
                     . "$SCRIPT" ""
                 )
@@ -347,7 +348,8 @@ function run_helpers() {
 
                 # Run in subshell so we preserve environment.
                 (
-                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE^^}_${COMMAND^^}_OPTIONS"
+                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS"
+                    uppercase OPTIONS_VARIABLE "$OPTIONS_VARIABLE"
                     OPTIONS="${!OPTIONS_VARIABLE}"
                     . "$SCRIPT" "${1+"$@"}"
                 )
@@ -483,6 +485,42 @@ function test_for_program() {
     fi
 
     return 1
+}
+
+
+# Change a string to uppercase.  Only ASCII letters are affected.
+# bash on Mac OS X does not support ${VAR^^}
+#
+# Parameters:  ResultVariableName InputString
+function uppercase() {
+    local STR="$2"
+    STR="${STR//a/A}"
+    STR="${STR//b/B}"
+    STR="${STR//c/C}"
+    STR="${STR//d/D}"
+    STR="${STR//e/E}"
+    STR="${STR//f/F}"
+    STR="${STR//g/G}"
+    STR="${STR//h/H}"
+    STR="${STR//i/I}"
+    STR="${STR//j/J}"
+    STR="${STR//k/K}"
+    STR="${STR//l/L}"
+    STR="${STR//m/M}"
+    STR="${STR//n/N}"
+    STR="${STR//o/O}"
+    STR="${STR//p/P}"
+    STR="${STR//q/Q}"
+    STR="${STR//r/R}"
+    STR="${STR//s/S}"
+    STR="${STR//t/T}"
+    STR="${STR//u/U}"
+    STR="${STR//v/V}"
+    STR="${STR//w/W}"
+    STR="${STR//x/X}"
+    STR="${STR//y/Y}"
+    STR="${STR//z/Z}"
+    local "$1" && indirect $1 "$STR"
 }
 
 
