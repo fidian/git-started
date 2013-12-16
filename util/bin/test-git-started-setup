@@ -451,10 +451,11 @@ fi
 # This is a bit special as they are executed in an environment like what
 # I will set up in the test.  Doing a "cd .git/hooks/../../bin" goes to the
 # bin directory, but ". .git/hooks/../../bin/file" will use util/bin.  To
-# Eliminate that problem, I use readlink for the git hooks.
+# Eliminate that problem, I use 'cd -P' for the git hooks.
 MAKE_REPO TEMP_REPO
 (
     cd "$TEMP_REPO"
+    # Must have "bin" for this test to be correct
     mkdir -p bin util/bin util/git/hooks
     rm -rf .git/hooks
     ln -s ../util/git/hooks .git/hooks
@@ -471,7 +472,7 @@ TEST "working directory (git hooks + setup)"
 # Git hooks use a method like this to determine which file to execute
 cat > "$TEMP_REPO/util/git/hooks/post-checkout" <<EOF
 #!/bin/bash
-. "\$(readlink -f "\${0%/*}/../..")/bin/test_path"
+. "\$(cd -P "\${0%/*}/../.." && pwd)/bin/test_path"
 EOF
 chmod 755 "$TEMP_REPO/util/git/hooks/post-checkout"
 ACTUAL="$(cd "$TEMP_REPO"; .git/hooks/post-checkout)"
