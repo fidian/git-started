@@ -145,7 +145,6 @@ for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submod
         FAIL "got \"$ACTUAL\""
     fi
 done
-rm -rf "$TEMP_REPO"
 
 
 #
@@ -276,7 +275,6 @@ if [ "$(stat_file "$FN2")" != "$STAT1" ]; then
 else
     PASS
 fi
-rm -rf "$TEMP_DIR"
 
 
 #
@@ -503,7 +501,6 @@ if [ "$ACTUAL" == "$EXPECTED" ]; then
 else
     FAIL "Expecting $EXPECTED but got $ACTUAL"
 fi
-rm -rf "$TEMP_REPO"
 
 
 #
@@ -526,7 +523,6 @@ if ( cd "$TEMP_REPO"; git commit -m "checking pre-commit hook" > /dev/null 2>&1 
 else
     PASS
 fi
-rm -rf "$TEMP_REPO"
 
 TEST "merged - pre-commit"
 MAKE_REPO TEMP_REPO
@@ -544,7 +540,6 @@ if ( cd "$TEMP_REPO"; git commit -m "checking pre-commit hook" > /dev/null 2>&1 
 else
     PASS
 fi
-rm -rf "$TEMP_REPO"
 
 #
 # Done!
