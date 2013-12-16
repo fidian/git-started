@@ -62,6 +62,8 @@ function file_extension() {
 # some_path             Priority #2
 # /submodule/some_path  Priority #3
 #
+# The resulting file must be executable or it won't be returned.
+#
 # Parameters: ResultVariableName PathYouWantToFind
 function get_executable() {
     local SOME_PATH="$2"
@@ -252,23 +254,24 @@ function run_all_scripts() {
     fi
 
     while read FN; do
-        get_executable SCRIPT "$DIR/$FN"
-        debug "run_all_scripts executable is '$SCRIPT'"
+        if get_executable SCRIPT "$DIR/$FN"; then
+            debug "run_all_scripts executable is '$SCRIPT'"
 
-        # Run in subshell so we preserve environment.  Keep current environment
-        # variables around for things like the pre-commit hook.
-        (
-            . "$SCRIPT" ${1+"$@"}
-        )
+            # Run in subshell so we preserve environment.  Keep current environment
+            # variables around for things like the pre-commit hook.
+            (
+                . "$SCRIPT" ${1+"$@"}
+            )
 
-        # Stop if any script reported an error
-        RESULT=$?
+            # Stop if any script reported an error
+            RESULT=$?
 
-        if [ $RESULT -ne 0 ]; then
-            debug "run_all_scripts result $RESULT"
-            return $RESULT
+            if [ $RESULT -ne 0 ]; then
+                debug "run_all_scripts result $RESULT"
+                return $RESULT
+            fi
         fi
-    done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -executable -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
+    done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
     debug "run_all_scripts all passed"
     return 0
