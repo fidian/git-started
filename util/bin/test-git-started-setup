@@ -75,7 +75,7 @@ for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext ..
 	EXPECTED="${FILE##*:}"
 	INPUT="${FILE%:*}"
 	TEST "file_extension \"$INPUT\" = \"$EXPECTED\""
-	ACTUAL="$(file_extension "$INPUT")"
+    file_extension ACTUAL "$INPUT"
 
 	if [ "$ACTUAL" == "$EXPECTED" ]; then
 		PASS

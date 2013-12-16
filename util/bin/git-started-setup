@@ -44,13 +44,14 @@ function echo_prompt() {
 # Get the extension of a filename
 # Needs to work with "file.txt" and return "txt", "no_extension" returns ""
 # and "some.dir.name/some/path.name.here" shows "here"
-# This does not use subshells
+# 
+# Parameters: ResultVariableName FileName
 function file_extension() {
-    local FN="${1##*/}" # Remove path, which might have periods
+    local FN="${2##*/}" # Remove path, which might have periods
     local BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
     local EXTENSION="${FN:${#BASE}+1}"
-    debug "file_extension '$1' is '$EXTENSION'"
-    echo "$EXTENSION"
+    debug "file_extension '$2' is '$EXTENSION'"
+    local "$1" && indirect $1 "$EXTENSION"
 }
 
 # Finds an executable file for a given path.  Searches the local directory,

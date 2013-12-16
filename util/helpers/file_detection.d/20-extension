@@ -1,8 +1,8 @@
 #!/bin/bash
 
-EXT="$(file_extension "$1" | tr "A-Z" "a-z")"
+file_extension EXT "$1"
 
-case "$EXT" in
+case "${EXT,,}" in
 	css)
 		echo "css"
 		;;
