@@ -32,6 +32,8 @@ if [ $RESULT -ne 0 ]; then
     # Error trying to pretty print
 	echo_clear_line
 	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty print error:${COLOR_RESET}  ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
+	cat "$OUTPUT_DIR/stderr" >&2
+	cat "$OUTPUT_DIR/stdout"
 fi
 
 if [ ! -s "$TARGET_FILE" ]; then
