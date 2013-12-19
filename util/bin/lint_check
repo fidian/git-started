@@ -12,6 +12,7 @@ OUTPUT="$OUTPUT_DIR/output"
 debug "lint_check running helpers"
 run_helpers "LINT" "lint_check.d" "$FILE" > "$OUTPUT" 2>&1
 RESULT=$?
+debug_enabled && cat "$OUTPUT" >&2
 debug "lint_check running helpers result $RESULT"
 
 if [ $RESULT -ne 0 ]; then

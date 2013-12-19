@@ -4,7 +4,6 @@
 # This script will always put you at the top level of the repository to modify
 # with several configuration variables set.
 #
-#
 #   STARTING_DIR = The directory where the user started the command
 #   TOOL_DIR = The 'util/' directory in git-started, relative
 #   TARGET_DIR = The root directory of the repository to act upon
@@ -21,9 +20,25 @@
 
 # Write out a debug message to stderr if debug mode enabled
 function debug() {
-    if [ ! -z "$DEBUG" ]; then
-        echo ${1+"$@"} >&2
-    fi
+    debug_enabled && echo "$DEBUG_INDENT"${1+"$@"} >&2
+    return 0
+}
+
+# Return 0 if debug is enabled
+function debug_enabled() {
+    [ ! -z "$DEBUG" ]
+}
+
+# Increase debug indent level
+function debug_indent() {
+    DEBUG_INDENT+="    "
+    debug ${1+"$@"}
+}
+
+# Decrease the debug indent level
+function debug_outdent() {
+    debug "$1"
+    DEBUG_INDENT="${DEBUG_INDENT:4}"
 }
 
 # Clear the current line
@@ -67,30 +82,30 @@ function file_extension() {
 # Parameters: ResultVariableName PathYouWantToFind
 function get_executable() {
     local SOME_PATH="$2"
-    debug "get_executable searching for '$SOME_PATH'"
+    debug_indent "get_executable searching for '$SOME_PATH'"
 
     if [ -x "${LOCAL_DIR}/${SOME_PATH}" ]; then
-        debug "get_executable found local '${LOCAL_DIR}/${SOME_PATH}'"
+        debug_outdent "get_executable found local '${LOCAL_DIR}/${SOME_PATH}'"
         local "$1" && indirect $1 "${LOCAL_DIR}/${SOME_PATH}"
         return 0
     fi
 
     if [ -x "${TARGET_DIR}/${SOME_PATH}" ]; then
-        debug "get_executable found main '${TARGET_DIR}/${SOME_PATH}'"
+        debug_outdent "get_executable found main '${TARGET_DIR}/${SOME_PATH}'"
         local "$1" && indirect $1 "${TARGET_DIR}/${SOME_PATH}"
         return 0
     fi
 
     if is_submodule; then
         if [ -x "${SUBMODULE_PATH}/${SOME_PATH}" ]; then
-            debug "get_executable found submodule '${SUBMODULE_PATH}/${SOME_PATH}'"
+            debug_outdent "get_executable found submodule '${SUBMODULE_PATH}/${SOME_PATH}'"
             local "$1" && indirect $1 "${SUBMODULE_PATH}/${SOME_PATH}"
             return 0
         fi
     fi
 
     # Failure to find a matching file
-    debug "get_executable failed to find match"
+    debug_outdent "get_executable failed to find match"
     local "$1" && indirect $1 ""
     return 1
 }
@@ -101,16 +116,18 @@ function get_executable() {
 #
 # Parameters:  ResultVariableName Filename
 function get_file_type() {
+    debug_indent "get_file_type '$2'"
     local TYPE="$(run_all_scripts util/helpers/file_detection.d "$2")"
     debug "get_file_type result '$TYPE'"
 
     if [ -z "$TYPE" ]; then
         # Failed to detect the type
-        debug "get_file_type returning 'unknown'"
+        debug_outdent "get_file_type returning 'unknown'"
         local "$1" && indirect $1 "unknown"
         return 1
     fi
 
+    debug_outdent "get_file_type result '$TYPE'"
     local "$1" && indirect $1 "$TYPE"
     return 0
 }
@@ -146,19 +163,21 @@ function is_submodule() {
 
     # Get the root of this repository
     CHILD_DIR="$(git rev-parse --show-toplevel)"
+    debug_indent "is_submodule CHILD_DIR '$CHILD_DIR'"
 
     if [ -z "$CHILD_DIR" ]; then
         CACHED_IS_SUBMODULE=1
-        debug "is_submodule 1 = no child directory - strange error"
+        debug_outdent "is_submodule 1 = no child directory - strange error"
         return 1 # Negative
     fi
 
     # Get the root of the parent repository
     PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
+    debug "is_submodule PARENT_DIR '$PARENT_DIR'"
 
     if [ -z "$PARENT_DIR" ]; then
         CACHED_IS_SUBMODULE=1
-        debug "is_submodule 1 = parent is not a repository"
+        debug_outdent "is_submodule 1 = parent is not a repository"
         return 1 # Negative
     fi
 
@@ -166,55 +185,60 @@ function is_submodule() {
     while read MODULE_PATH; do
         # Get the full path to the module
         FULL_MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
+        debug "is_submodule FULL_MODULE_PATH '$FULL_MODULE_PATH'"
 
         if [ "$FULL_MODULE_PATH" == "$CHILD_DIR" ]; then
-            # This variable is NOT local
+            # These variables are NOT local
             SUBMODULE_PATH="$MODULE_PATH"
+            debug "is_submodule set SUBMODULE_PATH='$SUBMODULE_PATH'"
             CACHED_IS_SUBMODULE=0
-            debug "is_submodule 0 = submodule matches"
+            debug_outdent "is_submodule 0 = submodule matches"
             return 0 # Affirmative
         fi
     done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
 
     CACHED_IS_SUBMODULE=1
-    debug "is_submodule 1 = no matching submodule"
+    debug_outdent "is_submodule 1 = no matching submodule"
     return 1 # Negative
 }
 
 # Execute a series of commands on exit
 function on_exit() {
     local N=${#ON_EXIT_ITEMS[*]}
+    debug_indent "on_exit adding '$*'"
     ON_EXIT_ITEMS[$n]="$*"
 
     if [[ $n -eq 0 ]]; then
-        debug "Setting trap"
         trap on_exit_trap EXIT
+        debug_outdent "on_exit set trap"
+    else
+        debug_outdent "on_exit trap already set"
     fi
 }
 
 # This is what is ran by the trap
 function on_exit_trap() {
+    debug_indent "on_exit_trap start"
     for i in "${ON_EXIT_ITEMS[@]}"; do
-        debug "on_exit_trap: $i"
+        debug "on_exit_trap '$i'"
         eval $i
     done
+    debug_outdent "on_exit_trap complete"
 }
 
 # Generate a random string of the given length.
-# Uses no shell commands.
+# Uses no external shell commands nor loops.
 #
 # Parameters: ResultVariableName LengthOfString
 function random_string() {
-    local LEN="$2"
-    local STRING=""
     local LETTERS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+    local VAR
 
-    while [ "$LEN" -gt 0 ]; do
-        STRING+=${LETTERS:$RANDOM%62:1}
-        LEN=$(( $LEN - 1 ))
-    done
-
-    local "$1" && indirect $1 "$STRING"
+    debug_indent "random_string length of $2"
+    eval "printf -v VAR '\${LETTERS:\$RANDOM%%64:1}%.0s' {1..$2}"
+    eval "VAR=\"$VAR\""
+    debug_outdent "random_string '$VAR'"
+    local "$1" && indirect $1 "$VAR"
 }
 
 # Resolve paths based on an original location.  Useful for figuring out
@@ -230,12 +254,13 @@ function resolve_path() {
     local WHENCE="$2" # Directory that we use for resolution
     local FILE="$3" # Relative or absolute file/path
     local RESULT="$FILE" # Our end result
+    debug_indent "resolve_path '$WHENCE' '$FILE'"
 
     if [ "${FILE:0:1}" != "/" ]; then
         RESULT="${WHENCE}/${FILE}"
     fi
 
-    debug "resolve_path '$WHENCE' '$FILE' becomes '$RESULT'"
+    debug_outdent "resolve_path result is '$RESULT'"
     local "$1" && indirect $1 "$RESULT"
 }
 
@@ -247,8 +272,10 @@ function run_all_scripts() {
     local DIR="$1"
     shift
 
-    if [ ! -d "$DIR" ] && [ ! -d "./$SUBMODULE_PATH/$DIR" ]; then
-        debug "run_all_scripts '$DIR' no scripts to run"
+    debug_indent "run_all_scripts ${1+"$@"}"
+
+    if [ ! -d "$DIR" ] && [ ! -d "./$SUBMODULE_PATH/$DIR" ] && [ ! -d "local/$DIR" ]; then
+        debug_outdent "run_all_scripts '$DIR' does not exist"
         # No directory, thus no scripts to run, thus success!
         return 0
     fi
@@ -265,15 +292,16 @@ function run_all_scripts() {
 
             # Stop if any script reported an error
             RESULT=$?
+            debug "run_all_scripts result $RESULT"
 
             if [ $RESULT -ne 0 ]; then
-                debug "run_all_scripts result $RESULT"
+                debug_outdent "run_all_scripts aborting on first failure"
                 return $RESULT
             fi
         fi
     done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
 
-    debug "run_all_scripts all passed"
+    debug_outdent "run_all_scripts all passed"
     return 0
 }
 
@@ -288,91 +316,87 @@ function run_all_scripts() {
 #
 # Parameters: VariablePrefix HelperDirectory Filename MoreArgsToPassToScripts
 function run_helpers() {
+    debug_indent "run_helpers ${1+"$@"}"
     local PREFIX="$1" # Prefix for variable to use for programs
-    local HELPER_DIR="$2" # Name of directory in helpers.d
+    local HELPER_DIR="util/helpers.d/$2" # Directory with scripts
     local FILE="$3" # Filename to check or run against
+    local CONFIG CONFIGS COMMAND CONFIG_COMMANDS FILE_TYPE MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
+    get_file_type FILE_TYPE "$FILE"
+    local CONFIGS_VAR_NAME="${PREFIX}_${FILE_TYPE}"
+    uppercase CONFIGS_VAR_NAME "$CONFIGS_VAR_NAME"
+    CONFIGS="${!CONFIGS_VAR_NAME}"
+    debug "run_helpers config '$CONFIGS_VAR_NAME' '$CONFIGS'"
     shift # Remove PREFIX
     shift # Remove HELPER_DIR
 
-    local FILE_TYPE
-    get_file_type FILE_TYPE "$FILE"
-    local CONFIGS_VAR_NAME="${PREFIX}_$FILE_TYPE"
-    local CONFIGS CONFIGSCONFIG COMMAND CONFIG_COMMANDS MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
-    uppercase CONFIGS_VAR_NAME "$CONFIGS_VAR_NAME"
-    CONFIGS="${!CONFIGS_VAR_NAME}"
-    HELPER_DIR="util/helpers/${HELPER_DIR}"
-    debug "run_helpers '$CONFIGS_VAR_NAME' '$HELPER_DIR' '$CONFIGS' ${1+"$@"}"
-
     if [ -z "$CONFIGS" ]; then
         # No configuration - skip validation
-        debug 'run_helpers nothing to try'
+        debug_outdent 'run_helpers nothing to try'
         return 0
     fi
 
     # Find a configuration that works
     for CONFIG in $CONFIGS; do
-        CONFIG_COMMANDS="${CONFIG//+/ /}"
-        MISSING_COMMANDS=""
-
-        for COMMAND in $CONFIG_COMMANDS; do
-            # Automatically fall back to the _common directory
-            get_executable SCRIPT "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable SCRIPT "${HELPER_DIR}/_common/${COMMAND}"
-
-            if [ -z "$SCRIPT" ]; then
-                debug "run_helpers Command does not exist or is not executable: $COMMAND"
-                MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
-            else
-                # Run in a subshell for safety
-                (
-                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS"
-                    uppercase OPTIONS_VARIABLE "$OPTIONS_VARIABLE"
-                    OPTIONS="${!OPTIONS_VARIABLE}"
-                    . "$SCRIPT" ""
-                )
-
-                RESULT=$?
-
-                if [ $RESULT -ne 0 ]; then
-                    debug "run_helpers Command reported failure: $COMMAND"
-                    MISSING_COMMANDS="$MISSING_COMMANDS $COMMAND"
-                fi
-            fi
-        done
-
-        debug "run_helpers '$CONFIG' failures: $MISSING_COMMANDS"
-
-        if [ -z "$MISSING_COMMANDS" ]; then
-            # We have every component - run the linters
-            for COMMAND in $CONFIG_COMMANDS; do
-                # Automatically fall back to the _common directory
-                get_executable SCRIPT "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable SCRIPT "${HELPER_DIR}/_common/${COMMAND}"
-
-                # Run in subshell so we preserve environment.
-                (
-                    OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS"
-                    uppercase OPTIONS_VARIABLE "$OPTIONS_VARIABLE"
-                    OPTIONS="${!OPTIONS_VARIABLE}"
-                    . "$SCRIPT" "${1+"$@"}"
-                )
-
-                # Stop if any script reported an error
-                RESULT=$?
-                debug "run_helpers '$CONFIG' '$COMMAND' $RESULT"
-
-                if [ $RESULT -ne 0 ]; then
-                    return $RESULT
-                fi
-            done
-
-            # Pass
-            debug "run_helpers '$CONFIG' all passed"
-            return 0
+        debug "run_helpers scanning configuration '$CONFIG'"
+        if run_helper_script "$CONFIG"; then
+            debug "run_helpers running configuration '$CONFIG'"
+            run_helper_script "$CONFIG" ${1+"$@"}
+            RESULT=$?
+            debug_outdent "run_helpers result $RESULT"
+            return $RESULT
         fi
     done
 
-    # No matches
-    debug "run_helpers nothing matched"
+    # No matches, thus success as no configs were runnable
+    # and therefore none reported problems
+    debug_outdent "run_helpers nothing matched"
     return 0
+}
+
+# Runs a set of scripts from util/helpers/*/...
+# If any fail, immediately stop.
+#
+# CommandSet is a list of commands, like prettyprint+expand, which will run both commands
+#
+# Parameters: CommandSet MoreArgsToPassToScripts
+function run_helper_script() {
+    local COMMAND_SET="$1"
+    local OPTIONS OPTIONS_VARIABLE RESULT
+    debug_indent "run_helper_script ${1+"$@"}"
+    shift # Remove CommandSet
+
+    # Change command1+command2 into space separated list
+    for COMMAND in ${COMMAND_SET//+/ /}; do
+        debug "run_helper_script command '$COMMAND'"
+
+        # Automatically fall back to the _common directory
+        get_executable SCRIPT "${HELPER_DIR}/${FILE_TYPE}/${COMMAND}" || get_executable SCRIPT "${HELPER_DIR}/_common/${COMMAND}"
+
+        if [ -z "$SCRIPT" ]; then
+            debug_outdent "run_helper_script command does not exist or is not executable - aborting"
+            return 1
+        fi
+
+        OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS"
+        uppercase OPTIONS_VARIABLE "$OPTIONS_VARIABLE"
+        OPTIONS="${!OPTIONS_VARIABLE}"
+        debug "run_helper_script '$OPTIONS_VARIABLE' '$OPTIONS'"
+
+        # Run in a subshell for safety
+        (
+            . "$SCRIPT" ${1+"$@"}
+        )
+
+        RESULT=$?
+        debug "run_helper_script result $RESULT"
+
+        if [ $RESULT -ne 0 ]; then
+            debug_outdent "run_helper_script command reported failure"
+            return $RESULT
+        fi
+    done
+
+    debug_outdent "run_helper_script success"
 }
 
 
@@ -382,8 +406,7 @@ function run_helpers() {
 function stat_file() {
     local FN="$1"
     git hash-object "$FN" | tr -d "\n"
-    /usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || \
-    stat -f " %p %u:%g %z" "$FN"
+    /usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || stat -f " %p %u:%g %z" "$FN"
 }
 
 # On successful termination of a command, send its "stdout" to a specific
@@ -395,42 +418,47 @@ function success_save() {
     local DEST="$1"
     local TEMP_DIR
     local RESULT
+    debug_indent "success_save ${1+"$@"}"
     temporary_directory TEMP_DIR
     shift
-    debug "success_save \"$DEST\" ${1+"$@"}"
     ${1+"$@"} > "$TEMP_DIR/stdout" 2> "$TEMP_DIR/stderr"
     RESULT=$?
 
     if [ $RESULT -eq 0 ]; then
-        debug "success_save was a success"
         # Drop stderr and send stdout to destination file
         # Can not use "mv" as it doesn't preserve target file permissions
         cat "$TEMP_DIR/stdout" > "$DEST"
     else
-        debug "success_save experienced an error"
         # Send stderr and stdout back out
         cat "$TEMP_DIR/stderr" >&2
         cat "$TEMP_DIR/stdout"
     fi
 
+    debug_outdent "success_save result $RESULT"
     return $RESULT
 }
 
 # Create a temporary directory
 #
+# No subshells allowed!  Mixing subshells and on_exit does not work.
+#
 # Parameters: ResultVariableName
 function temporary_directory() {
     local DIR
 
+    debug_indent "temporary_directory '$1'"
     while true; do
         temporary_name DIR
-        if [ ! -d "$DIR" ]; then
+        if [ ! -e "$DIR" ]; then
             mkdir -m 0700 "$DIR" 2>/dev/null && \
-                debug "temporary_directory $DIR" && \
+                debug_outdent "temporary_directory $DIR" && \
                 on_exit "rm -rf '$DIR'" && \
                 local "$1" && \
                 indirect $1 $DIR && \
                 return 0
+            debug "temporary_directory '$DIR' could not be created"
+        else
+            debug "temporary_directory '$DIR' already exists"
         fi
     done
 }
@@ -463,7 +491,10 @@ function temporary_name() {
 
 # Attempt to see if a program is in the path and if it can be used.
 # Returns true if the program is available.
+#
+# Parameters: ProgramName
 function test_for_program() {
+    debug_indent "test_for_program '$1'"
     local RESULT
     local WHICH="$(which "$1" 2>&1)"
     RESULT=$?
@@ -474,15 +505,16 @@ function test_for_program() {
         if [ ! -z "$WHICH" ]; then
             # That string is a real executable
             if [ -x "$WHICH" ]; then
+                debug_outdent "test_for_program '$WHICH' success"
                 return 0
             else
-                debug "test_for_program '$WHICH' file not found"
+                debug_outdent "test_for_program '$WHICH' file not found"
             fi
         else
-            debug "test_for_program '$WHICH' empty string"
+            debug_outdent "test_for_program '$WHICH' empty string"
         fi
     else
-        debug "test_for_program '$WHICH' error code '$RESULT'"
+        debug_outdent "test_for_program '$WHICH' error code '$RESULT'"
     fi
 
     return 1
@@ -490,7 +522,8 @@ function test_for_program() {
 
 
 # Change a string to uppercase.  Only ASCII letters are affected.
-# bash on Mac OS X does not support ${VAR^^}
+# bash on Mac OS X does not support ${VAR^^} due to it having
+# only version 3.
 #
 # Parameters:  ResultVariableName InputString
 function uppercase() {
@@ -527,7 +560,12 @@ function uppercase() {
 
 # Go to the root of the repository we with to act upon
 STARTING_DIR="$(pwd)"
-cd "${BASH_SOURCE%/*}"
+
+# Might be sourcing a file in the current directory
+if [ "${BASH_SOURCE%/*}" != "$BASH_SOURCE" ]; then
+    cd "${BASH_SOURCE%/*}"
+fi
+
 # Remove any possibility of the environment messing up the rev-parse
 unset GIT_DIR
 cd "$(git rev-parse --show-toplevel)"
@@ -536,6 +574,7 @@ SUBMODULE_PATH=""
 # Debugging mode - lots of useful debug information gets shown
 # when you change this to 1
 : ${DEBUG:=""}
+DEBUG_INDENT=""
 
 # Enable colors - you can use "yes" for always use colors, "no" to never use
 # colors, or "auto" for them to be automatically applied if using a terminal

@@ -24,9 +24,14 @@ else
 	REAL_FILE="$TARGET_FILE"
 fi
 
+debug "pretty_print running helpers"
 run_helpers "PRETTY" "pretty_print.d" "$TARGET_FILE" > "$OUTPUT_DIR/stdout" 2> "$OUTPUT_DIR/stderr"
-
 RESULT=$?
+debug "pretty_print running helpers stderr"
+debug_enabled && cat "$OUTPUT_DIR/stderr" >&2
+debug "pretty_print running helpers output"
+debug_enabled && cat "$OUTPUT_DIR/stdout" >&2
+debug "pretty_print running helpers result $RESULT"
 
 if [ $RESULT -ne 0 ]; then
     # Error trying to pretty print
