@@ -205,10 +205,10 @@ function is_submodule() {
 # Execute a series of commands on exit
 function on_exit() {
     local N=${#ON_EXIT_ITEMS[*]}
-    debug_indent "on_exit adding '$*'"
-    ON_EXIT_ITEMS[$n]="$*"
+    debug_indent "on_exit adding [$N] '$*'"
+    ON_EXIT_ITEMS[$N]="$*"
 
-    if [[ $n -eq 0 ]]; then
+    if [[ $N -eq 0 ]]; then
         trap on_exit_trap EXIT
         debug_outdent "on_exit set trap"
     else
@@ -219,9 +219,9 @@ function on_exit() {
 # This is what is ran by the trap
 function on_exit_trap() {
     debug_indent "on_exit_trap start"
-    for i in "${ON_EXIT_ITEMS[@]}"; do
-        debug "on_exit_trap '$i'"
-        eval $i
+    for I in "${ON_EXIT_ITEMS[@]}"; do
+        debug "on_exit_trap '$I'"
+        eval $I
     done
     debug_outdent "on_exit_trap complete"
 }
