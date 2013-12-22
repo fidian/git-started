@@ -38,7 +38,7 @@ function debug_indent() {
 # Decrease the debug indent level
 function debug_outdent() {
     debug "$1"
-    DEBUG_INDENT="${DEBUG_INDENT:4}"
+    DEBUG_INDENT=${DEBUG_INDENT:4}
 }
 
 # Clear the current line
@@ -53,7 +53,7 @@ function echo_escape {
 
 # Echo a prompt without a newline
 function echo_prompt() {
-    printf "%s" "$1"
+    printf %s "$1"
 }
 
 # Get the extension of a filename
@@ -62,9 +62,9 @@ function echo_prompt() {
 # 
 # Parameters: ResultVariableName FileName
 function file_extension() {
-    local FN="${2##*/}" # Remove path, which might have periods
-    local BASE="${FN%.*}" # Remove extension, file may have lots.of.periods or none
-    local EXTENSION="${FN:${#BASE}+1}"
+    local FN=${2##*/} # Remove path, which might have periods
+    local BASE=${FN%.*} # Remove extension, file may have lots.of.periods or none
+    local EXTENSION=${FN:${#BASE}+1}
     debug "file_extension '$2' is '$EXTENSION'"
     local "$1" && indirect $1 "$EXTENSION"
 }
@@ -81,7 +81,7 @@ function file_extension() {
 #
 # Parameters: ResultVariableName PathYouWantToFind
 function get_executable() {
-    local SOME_PATH="$2"
+    local SOME_PATH=$2
     debug_indent "get_executable searching for '$SOME_PATH'"
 
     if [ -x "${LOCAL_DIR}/${SOME_PATH}" ]; then
@@ -117,7 +117,7 @@ function get_executable() {
 # Parameters:  ResultVariableName Filename
 function get_file_type() {
     debug_indent "get_file_type '$2'"
-    local TYPE="$(run_all_scripts util/helpers/file_detection.d "$2")"
+    local TYPE=$(run_all_scripts util/helpers/file_detection.d "$2")
     debug "get_file_type result '$TYPE'"
 
     if [ -z "$TYPE" ]; then
@@ -134,7 +134,7 @@ function get_file_type() {
 
 # Assign data to a variable that's in a parent scope.
 # See http://tldp.org/LDP/abs/html/ivr.html for lots of info.
-# Based on "upvar" from
+# Based on "upvar" from bash-completion package and
 # http://www.fvue.nl/wiki/Bash:_Passing_variables_by_reference
 #
 # Can't use that version as it is GPL.  This one only works with
@@ -162,7 +162,7 @@ function is_submodule() {
     fi
 
     # Get the root of this repository
-    CHILD_DIR="$(git rev-parse --show-toplevel)"
+    CHILD_DIR=$(git rev-parse --show-toplevel)
     debug_indent "is_submodule CHILD_DIR '$CHILD_DIR'"
 
     if [ -z "$CHILD_DIR" ]; then
@@ -172,7 +172,7 @@ function is_submodule() {
     fi
 
     # Get the root of the parent repository
-    PARENT_DIR="$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)"
+    PARENT_DIR=$(cd "$CHILD_DIR/.." && git rev-parse --show-toplevel 2> /dev/null)
     debug "is_submodule PARENT_DIR '$PARENT_DIR'"
 
     if [ -z "$PARENT_DIR" ]; then
@@ -184,12 +184,13 @@ function is_submodule() {
     # List all submodules in parent.  Careful with the subshells
     while read MODULE_PATH; do
         # Get the full path to the module
-        FULL_MODULE_PATH="$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )"
+        # Need to do the "cd" twice to get the right path when using odd symlinks
+        FULL_MODULE_PATH=$( cd "$PARENT_DIR" && cd "$MODULE_PATH" && git rev-parse --show-toplevel 2> /dev/null )
         debug "is_submodule FULL_MODULE_PATH '$FULL_MODULE_PATH'"
 
         if [ "$FULL_MODULE_PATH" == "$CHILD_DIR" ]; then
             # These variables are NOT local
-            SUBMODULE_PATH="$MODULE_PATH"
+            SUBMODULE_PATH=$MODULE_PATH
             debug "is_submodule set SUBMODULE_PATH='$SUBMODULE_PATH'"
             CACHED_IS_SUBMODULE=0
             debug_outdent "is_submodule 0 = submodule matches"
@@ -206,7 +207,7 @@ function is_submodule() {
 function on_exit() {
     local N=${#ON_EXIT_ITEMS[*]}
     debug_indent "on_exit adding [$N] '$*'"
-    ON_EXIT_ITEMS[$N]="$*"
+    ON_EXIT_ITEMS[$N]=$*
 
     if [[ $N -eq 0 ]]; then
         trap on_exit_trap EXIT
@@ -231,7 +232,7 @@ function on_exit_trap() {
 #
 # Parameters: ResultVariableName LengthOfString
 function random_string() {
-    local LETTERS="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+    local LETTERS=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_
     local VAR
 
     debug_indent "random_string length of $2"
@@ -251,13 +252,13 @@ function random_string() {
 #         resolve_path FILES "$STARTING_DIR" ${1+"$@"})
 # Parameters:  ResultVariableName DirectoryFromWhence FilenameOrPath
 function resolve_path() {
-    local WHENCE="$2" # Directory that we use for resolution
-    local FILE="$3" # Relative or absolute file/path
-    local RESULT="$FILE" # Our end result
+    local WHENCE=$2 # Directory that we use for resolution
+    local FILE=$3 # Relative or absolute file/path
+    local RESULT=$FILE # Our end result
     debug_indent "resolve_path '$WHENCE' '$FILE'"
 
     if [ "${FILE:0:1}" != "/" ]; then
-        RESULT="${WHENCE}/${FILE}"
+        RESULT=${WHENCE}/${FILE}
     fi
 
     debug_outdent "resolve_path result is '$RESULT'"
@@ -269,7 +270,7 @@ function resolve_path() {
 # Parameters:  DirectoryOfScripts ArgsToPassToScripts
 function run_all_scripts() {
     local RESULT SCRIPT
-    local DIR="$1"
+    local DIR=$1
     shift
 
     debug_indent "run_all_scripts ${1+"$@"}"
@@ -317,14 +318,14 @@ function run_all_scripts() {
 # Parameters: VariablePrefix HelperDirectory Filename MoreArgsToPassToScripts
 function run_helpers() {
     debug_indent "run_helpers ${1+"$@"}"
-    local PREFIX="$1" # Prefix for variable to use for programs
-    local HELPER_DIR="util/helpers.d/$2" # Directory with scripts
-    local FILE="$3" # Filename to check or run against
+    local PREFIX=$1 # Prefix for variable to use for programs
+    local HELPER_DIR=util/helpers.d/$2 # Directory with scripts
+    local FILE=$3 # Filename to check or run against
     local CONFIG CONFIGS COMMAND CONFIG_COMMANDS FILE_TYPE MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
     get_file_type FILE_TYPE "$FILE"
-    local CONFIGS_VAR_NAME="${PREFIX}_${FILE_TYPE}"
+    local CONFIGS_VAR_NAME=${PREFIX}_${FILE_TYPE}
     uppercase CONFIGS_VAR_NAME "$CONFIGS_VAR_NAME"
-    CONFIGS="${!CONFIGS_VAR_NAME}"
+    CONFIGS=${!CONFIGS_VAR_NAME}
     debug "run_helpers config '$CONFIGS_VAR_NAME' '$CONFIGS'"
     shift # Remove PREFIX
     shift # Remove HELPER_DIR
@@ -360,7 +361,7 @@ function run_helpers() {
 #
 # Parameters: CommandSet MoreArgsToPassToScripts
 function run_helper_script() {
-    local COMMAND_SET="$1"
+    local COMMAND_SET=$1
     local OPTIONS OPTIONS_VARIABLE RESULT
     debug_indent "run_helper_script ${1+"$@"}"
     shift # Remove CommandSet
@@ -377,9 +378,9 @@ function run_helper_script() {
             return 1
         fi
 
-        OPTIONS_VARIABLE="${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS"
+        OPTIONS_VARIABLE=${PREFIX}_${FILE_TYPE}_${COMMAND}_OPTIONS
         uppercase OPTIONS_VARIABLE "$OPTIONS_VARIABLE"
-        OPTIONS="${!OPTIONS_VARIABLE}"
+        OPTIONS=${!OPTIONS_VARIABLE}
         debug "run_helper_script '$OPTIONS_VARIABLE' '$OPTIONS'"
 
         # Run in a subshell for safety
@@ -404,7 +405,7 @@ function run_helper_script() {
 # Result:  MD5 Mode User:Group Size
 # Does not log the last modification date - just info about the content
 function stat_file() {
-    local FN="$1"
+    local FN=$1
     git hash-object "$FN" | tr -d "\n"
     /usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || stat -f " %p %u:%g %z" "$FN"
 }
@@ -415,7 +416,7 @@ function stat_file() {
 #
 # Parameters: DestinationFile CommandToRunWithArguments
 function success_save() {
-    local DEST="$1"
+    local DEST=$1
     local TEMP_DIR
     local RESULT
     debug_indent "success_save ${1+"$@"}"
@@ -471,7 +472,7 @@ function temporary_directory_location() {
     local DIR=/tmp
 
     if [ ! -z "$TMPDIR" ] && [ -d "$TMPDIR" ]; then
-        DIR="$TMPDIR"
+        DIR=$TMPDIR
     fi
 
     local "$1" && indirect $1 "$DIR"
@@ -496,7 +497,7 @@ function temporary_name() {
 function test_for_program() {
     debug_indent "test_for_program '$1'"
     local RESULT
-    local WHICH="$(which "$1" 2>&1)"
+    local WHICH=$(which "$1" 2>&1)
     RESULT=$?
 
     # No error code
@@ -527,39 +528,39 @@ function test_for_program() {
 #
 # Parameters:  ResultVariableName InputString
 function uppercase() {
-    local STR="$2"
-    STR="${STR//a/A}"
-    STR="${STR//b/B}"
-    STR="${STR//c/C}"
-    STR="${STR//d/D}"
-    STR="${STR//e/E}"
-    STR="${STR//f/F}"
-    STR="${STR//g/G}"
-    STR="${STR//h/H}"
-    STR="${STR//i/I}"
-    STR="${STR//j/J}"
-    STR="${STR//k/K}"
-    STR="${STR//l/L}"
-    STR="${STR//m/M}"
-    STR="${STR//n/N}"
-    STR="${STR//o/O}"
-    STR="${STR//p/P}"
-    STR="${STR//q/Q}"
-    STR="${STR//r/R}"
-    STR="${STR//s/S}"
-    STR="${STR//t/T}"
-    STR="${STR//u/U}"
-    STR="${STR//v/V}"
-    STR="${STR//w/W}"
-    STR="${STR//x/X}"
-    STR="${STR//y/Y}"
-    STR="${STR//z/Z}"
+    local STR=$2
+    STR=${STR//a/A}
+    STR=${STR//b/B}
+    STR=${STR//c/C}
+    STR=${STR//d/D}
+    STR=${STR//e/E}
+    STR=${STR//f/F}
+    STR=${STR//g/G}
+    STR=${STR//h/H}
+    STR=${STR//i/I}
+    STR=${STR//j/J}
+    STR=${STR//k/K}
+    STR=${STR//l/L}
+    STR=${STR//m/M}
+    STR=${STR//n/N}
+    STR=${STR//o/O}
+    STR=${STR//p/P}
+    STR=${STR//q/Q}
+    STR=${STR//r/R}
+    STR=${STR//s/S}
+    STR=${STR//t/T}
+    STR=${STR//u/U}
+    STR=${STR//v/V}
+    STR=${STR//w/W}
+    STR=${STR//x/X}
+    STR=${STR//y/Y}
+    STR=${STR//z/Z}
     local "$1" && indirect $1 "$STR"
 }
 
 
 # Go to the root of the repository we with to act upon
-STARTING_DIR="$(pwd)"
+STARTING_DIR=$(pwd)
 
 # Might be sourcing a file in the current directory
 if [ "${BASH_SOURCE%/*}" != "$BASH_SOURCE" ]; then
@@ -569,32 +570,32 @@ fi
 # Remove any possibility of the environment messing up the rev-parse
 unset GIT_DIR
 cd "$(git rev-parse --show-toplevel)"
-SUBMODULE_PATH=""
+SUBMODULE_PATH=
 
 # Debugging mode - lots of useful debug information gets shown
-# when you change this to 1
-: ${DEBUG:=""}
-DEBUG_INDENT=""
+# when you set DEBUG to a non-empty string
+# DEBUG=
+DEBUG_INDENT=
 
 # Enable colors - you can use "yes" for always use colors, "no" to never use
 # colors, or "auto" for them to be automatically applied if using a terminal
-: ${COLOR:="auto"}
+: ${COLOR:=auto}
 
 if ! is_submodule; then
-    TOOL_DIR="util"
-    TARGET_DIR="$(pwd)"
-    LOCAL_DIR="$TARGET_DIR/local"
+    TOOL_DIR=util
+    TARGET_DIR=$(pwd)
+    LOCAL_DIR=$TARGET_DIR/local
 else
-    TOOL_DIR="${SUBMODULE_PATH}/util"
+    TOOL_DIR=${SUBMODULE_PATH}/util
     cd ..
     cd "$(git rev-parse --show-toplevel)" # Up to the root of the real repo
-    TARGET_DIR="$(pwd)"
-    LOCAL_DIR="$TARGET_DIR/local"
+    TARGET_DIR=$(pwd)
+    LOCAL_DIR=$TARGET_DIR/local
 fi
 
 # Add node programs to the path
 if [ -d "$TARGET_DIR/node_modules/.bin" ]; then
-    PATH="$TARGET_DIR/node_modules/.bin:$PATH"
+    PATH=$TARGET_DIR/node_modules/.bin:$PATH
 fi
 
 # Directories to ignore for ctags, etags, pretty printing, lint checking
@@ -619,27 +620,27 @@ COLOR_RESET="\e[m" # Reset
 # and then falling back further to YY, use
 # LINT_LANG="XX+YY XX YY"
 # To completely disable
-# LINT_LANG=""
-LINT_CSS="prettycss"
+# LINT_LANG=
+LINT_CSS=prettycss
 LINT_JS="jslint jsl"
-LINT_JSON="jslint"
-LINT_MARKDOWN=""
-LINT_PHP="cli"
-LINT_SASS="sass"
-LINT_SCSS="sass"
-LINT_YAML=""
+LINT_JSON=jslint
+LINT_MARKDOWN=
+LINT_PHP=cli
+LINT_SASS=sass
+LINT_SCSS=sass
+LINT_YAML=
 
 # Lint command-line options for various language/program pairs
 LINT_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
 
 LINT_JS_JSL_OPTIONS="-nologo -nofilelisting -nosummary -process"
-LINT_JS_JSLINT_OPTIONS=""
+LINT_JS_JSLINT_OPTIONS=
 
-LINT_JSON_JSLINT_OPTIONS=""
+LINT_JSON_JSLINT_OPTIONS=
 
 LINT_PHP_CLI_OPTIONS="-l -d error_reporting=E_ALL -d display_errors=0"
 
-LINT_SASS_SASS_OPTIONS="--check"
+LINT_SASS_SASS_OPTIONS=--check
 
 LINT_SCSS_SASS_OPTIONS="--check --scss"
 
@@ -647,11 +648,11 @@ LINT_SCSS_SASS_OPTIONS="--check --scss"
 PRETTY_CSS="prettycss expand"
 PRETTY_JS="jsbeautify expand"
 PRETTY_JSON="jsbeautify expand"
-PRETTY_MARKDOWN="expand"
+PRETTY_MARKDOWN=expand
 PRETTY_PHP="phpbeautifier expand"
 PRETTY_SASS="sassconvert expand"
 PRETTY_SCSS="sassconvert expand"
-PRETTY_YAML="expand"
+PRETTY_YAML=expand
 
 # Pretty printing command-line options
 PRETTY_CSS_EXPAND_OPTIONS="--tabs=4 --initial"
@@ -670,7 +671,7 @@ PRETTY_MARKDOWN_EXPAND_OPTIONS="--tabs=4 --initial"
 PRETTY_MARKDOWN_UNEXPAND_OPTIONS="--tabs=4 --first-only"
 
 PRETTY_PHP_EXPAND_OPTIONS="--tabs=4 --initial"
-PRETTY_PHP_PHPBEAUTIFIER_OPTIONS="-t"
+PRETTY_PHP_PHPBEAUTIFIER_OPTIONS=-t
 PRETTY_PHP_UNEXPAND_OPTIONS="--tabs=4 --first-only"
 
 PRETTY_SCSS_EXPAND_OPTIONS="--tabs=4 --initial"
@@ -690,16 +691,16 @@ if [ -f util/config/git-started-setup ]; then
 fi
 
 # Detect if COLOR=auto and if we are on a tty
-if [ "$COLOR" == "auto" ]; then
+if [ "$COLOR" == auto ]; then
     if [ -t 0 ]; then
-        COLOR="yes"
+        COLOR=yes
     else
-        COLOR="no"
+        COLOR=no
     fi
 fi
 
 # If COLOR is "no", clear out all colors
-if [ "$COLOR" == "no" ]; then
+if [ "$COLOR" == no ]; then
     unset printenv | grep -o "^COLOR_[^=]"
 fi
 

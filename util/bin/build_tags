@@ -2,7 +2,7 @@
 
 . "${0%/*}"/git-started-setup
 
-EXCLUDE="--exclude=.git"
+EXCLUDE=--exclude=.git
 
 for D in IGNORE_DIRS; do
 	EXCLUDE+=" --exclude=$D"

@@ -13,9 +13,9 @@ fi
 
 # To be safe, we operate on a copy of the file
 temporary_directory TEMPDIR
-TEMPFILE="${TEMPDIR}/${FILE##*/}"
+TEMPFILE=${TEMPDIR}/${FILE##*/}
 cp -p "$FILE" "$TEMPFILE"
-BEFORE="$(stat_file "$TEMPFILE")"
+BEFORE=$(stat_file "$TEMPFILE")
 debug "Pretty print before file stat: $BEFORE"
 "${TOOL_DIR}/bin/pretty_print" "$TEMPFILE" "$FILE"
 RESULT=$?
@@ -28,7 +28,7 @@ if [ $RESULT -ne 0 ]; then
 fi
 
 # No errors detected.  See if file was changed.
-AFTER="$(stat_file "$TEMPFILE")"
+AFTER=$(stat_file "$TEMPFILE")
 debug "Pretty print after file stat: $AFTER"
 
 if [ "$BEFORE" != "$AFTER" ]; then

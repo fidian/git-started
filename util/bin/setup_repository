@@ -2,8 +2,8 @@
 
 . "${0%/*}"/git-started-setup
 
-GIT_DIR_UID="$(stat -c %u .git/ 2> /dev/null || stat -f "%u" .git/)"
-GIT_DIR_USER="$(stat -c %U .git/ 2> /dev/null || stat -f "%Su" .git/)"
+GIT_DIR_UID=$(stat -c %u .git/ 2> /dev/null || stat -f "%u" .git/)
+GIT_DIR_USER=$(stat -c %U .git/ 2> /dev/null || stat -f "%Su" .git/)
 
 if [ "$UID" != "$GIT_DIR_UID" ]; then
 	echo "ERROR!"
@@ -17,9 +17,9 @@ function setup_symlink() {
 	local DESTFILE
 	local TARGET
 
-	DESTDIR="$1"
-	DESTFILE="$2"
-	TARGET="$3"
+	DESTDIR=$1
+	DESTFILE=$2
+	TARGET=$3
 
 	echo_prompt "$DESTDIR$DESTFILE:  "
 	cd "$DESTDIR"

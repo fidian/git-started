@@ -12,8 +12,8 @@
 # When you use a temporary file, we keep track of the original for the purpose
 # of providing useful error messages when there are problems.
 
-TARGET_FILE="$1"
-REAL_FILE="$2"
+TARGET_FILE=$1
+REAL_FILE=$2
 . "${0%/*}"/git-started-setup
 temporary_directory OUTPUT_DIR
 resolve_path TARGET_FILE "$STARTING_DIR" "$TARGET_FILE"

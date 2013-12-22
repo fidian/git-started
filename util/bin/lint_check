@@ -4,11 +4,11 @@ function lint_error() {
 	echo_clear_line
 }
 
-TARGET_FILE="$1"
+TARGET_FILE=$1
 . "${0%/*}"/git-started-setup
 resolve_path FILE "$STARTING_DIR" "$TARGET_FILE"
 temporary_directory OUTPUT_DIR
-OUTPUT="$OUTPUT_DIR/output"
+OUTPUT=$OUTPUT_DIR/output
 debug "lint_check running helpers"
 run_helpers "LINT" "lint_check.d" "$FILE" > "$OUTPUT" 2>&1
 RESULT=$?

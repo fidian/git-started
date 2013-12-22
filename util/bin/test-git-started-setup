@@ -59,8 +59,8 @@ else
 fi
 
 TEST "bash +="
-A="AAA"
-A+="BBB"
+A=AAA
+A+=BBB
 
 if [ "$A" != "AAABBB" ]; then
     FAIL "Mismatch: got '$A' wanted 'AAABBB'"
@@ -73,8 +73,8 @@ fi
 # file_extension
 #
 for FILE in file: file.txt:txt file.txt.old:old /file.ext:ext ../file.ext:ext .././dir.name/exe.txt/file.me:me; do
-    EXPECTED="${FILE##*:}"
-    INPUT="${FILE%:*}"
+    EXPECTED=${FILE##*:}
+    INPUT=${FILE%:*}
     TEST "file_extension \"$INPUT\" = \"$EXPECTED\""
     file_extension ACTUAL "$INPUT"
 
@@ -97,8 +97,8 @@ FAIL "No tests exist"
 # get_file_type
 #
 for FILE in a.css:css b.js:js c.html:html cc.htm:html d.php:php dd.inc:php e.txt:unknown; do
-    EXPECTED="${FILE##*:}"
-    INPUT="${FILE%:*}"
+    EXPECTED=${FILE##*:}
+    INPUT=${FILE%:*}
     TEST "get_file_type \"$INPUT\" = \"$EXPECTED\""
     get_file_type ACTUAL "$INPUT"
 
@@ -127,16 +127,16 @@ MAKE_REPO TEMP_REPO
 ) > /dev/null
 
 for DIR_RESULT in /:false /dir:false /submodule:true /dir/submodule:true /submodule/dir:true /dir/submodule/dir:true; do
-    EXPECTED="${DIR_RESULT##*:}"
-    INPUT="${DIR_RESULT%:*}"
+    EXPECTED=${DIR_RESULT##*:}
+    INPUT=${DIR_RESULT%:*}
     unset CACHED_IS_SUBMODULE
 
     TEST "is_submodule repo${INPUT} = $EXPECTED"
 
     if (cd "${TEMP_REPO}${INPUT}"; is_submodule); then
-        ACTUAL="true"
+        ACTUAL=true
     else
-        ACTUAL="false"
+        ACTUAL=false
     fi
 
     if [ "$ACTUAL" == "$EXPECTED" ]; then
@@ -158,9 +158,9 @@ FAIL "No tests exist"
 # random_string
 #
 TEST "random_string 12 has right length"
-EXPECTED="xxxxxxxxxxxx"
+EXPECTED=xxxxxxxxxxxx
 random_string ACTUAL 12
-ACTUAL="$(echo "$ACTUAL" | tr "a-zA-Z0-9" x)"
+ACTUAL=$(echo "$ACTUAL" | tr "a-zA-Z0-9" x)
 if [ "$ACTUAL" == "$EXPECTED" ]; then
     PASS
 else
@@ -181,10 +181,10 @@ fi
 # resolve_path
 #
 for FILE in /a,b:/a/b /c,d/e:/c/d/e f/,g/:f//g/ h/i,/j/k:/j/k; do
-    EXPECTED="${FILE##*:}"
-    INPUT="${FILE%:*}"
-    DIRNAME="${INPUT%,*}"
-    FILENAME="${INPUT##*,}"
+    EXPECTED=${FILE##*:}
+    INPUT=${FILE%:*}
+    DIRNAME=${INPUT%,*}
+    FILENAME=${INPUT##*,}
     TEST "resolve_path \"$DIRNAME\" \"$FILENAME\" = \"$EXPECTED\""
     resolve_path ACTUAL "$DIRNAME" "$FILENAME"
 
@@ -237,14 +237,14 @@ FAIL "no tests exist"
 # tracked by git, then those too should be checked.
 # This should return a single line describing a file.
 temporary_directory TEMP_DIR
-FN1="$TEMP_DIR/fn1"
-FN2="$TEMP_DIR/fn2"
+FN1=$TEMP_DIR/fn1
+FN2=$TEMP_DIR/fn2
 echo "Here is some content" >> $FN1
 chmod a-w "$FN1"
 sleep 2 # Guarantee timestamp mismatches, even on FAT-based systems
 
 TEST "stat_file non-empty string"
-STAT1="$(stat_file "$FN1")"
+STAT1=$(stat_file "$FN1")
 if [ -z "$STAT1" ]; then
     FAIL "Empty sting returned for stat"
 else
@@ -281,9 +281,9 @@ fi
 # success_save
 #
 temporary_directory DIR
-OUTPUT="$DIR/output"
-STDOUT="$DIR/stdout"
-STDERR="$DIR/stderr"
+OUTPUT=$DIR/output
+STDOUT=$DIR/stdout
+STDERR=$DIR/stderr
 function good_result() {
     echo "good stdout"
     echo "good stderr" >&2
@@ -354,7 +354,7 @@ chmod 701 "$OUTPUT"
 success_save "$OUTPUT" good_result > /dev/null 2>&1
 
 TEST "success_save success preserve file permissions"
-ACTUAL="$(get_file_permissions "$OUTPUT")"
+ACTUAL=$(get_file_permissions "$OUTPUT")
 if [ "$ACTUAL" == "701" ]; then
     PASS
 else
@@ -385,7 +385,7 @@ else
 fi
 
 TEST "temporary_directory has a restrictive mode"
-PERMS="$(get_file_permissions "$DIR")"
+PERMS=$(get_file_permissions "$DIR")
 if [ "${PERMS: -2}" == "00" ]; then
     PASS
 else
@@ -494,8 +494,8 @@ cat > "$TEMP_REPO/util/git/hooks/post-checkout" <<EOF
 . "\$(cd -P "\${0%/*}/../.." && pwd)/bin/test_path"
 EOF
 chmod 755 "$TEMP_REPO/util/git/hooks/post-checkout"
-ACTUAL="$(cd "$TEMP_REPO"; .git/hooks/post-checkout)"
-EXPECTED="util/bin/test_path"
+ACTUAL=$(cd "$TEMP_REPO"; .git/hooks/post-checkout)
+EXPECTED=util/bin/test_path
 if [ "$ACTUAL" == "$EXPECTED" ]; then
     PASS
 else
@@ -507,7 +507,7 @@ fi
 # This tests the ability for git-started to insert itself in a
 # repository either as a submodule or by being merged.
 #
-SOURCE="$(pwd)"
+SOURCE=$(pwd)
 TEST "submodule - pre-commit"
 MAKE_REPO TEMP_REPO
 (
