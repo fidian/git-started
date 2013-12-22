@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	test_for_program jsl
+    test_for_program jsl
 else
-	jsl $OPTIONS "$1"
+    jsl $OPTIONS "$1"
 fi

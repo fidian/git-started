@@ -6,36 +6,36 @@ GIT_DIR_UID=$(stat -c %u .git/ 2> /dev/null || stat -f "%u" .git/)
 GIT_DIR_USER=$(stat -c %U .git/ 2> /dev/null || stat -f "%Su" .git/)
 
 if [ "$UID" != "$GIT_DIR_UID" ]; then
-	echo "ERROR!"
-	echo "You need to be the same user as the owner of the .git directory."
-	echo "If you are using sudo, you shouldn't.  Become $GIT_DIR_USER"
-	exit 1
+    echo "ERROR!"
+    echo "You need to be the same user as the owner of the .git directory."
+    echo "If you are using sudo, you shouldn't.  Become $GIT_DIR_USER"
+    exit 1
 fi
 
 function setup_symlink() {
-	local DESTDIR
-	local DESTFILE
-	local TARGET
+    local DESTDIR
+    local DESTFILE
+    local TARGET
 
-	DESTDIR=$1
-	DESTFILE=$2
-	TARGET=$3
+    DESTDIR=$1
+    DESTFILE=$2
+    TARGET=$3
 
-	echo_prompt "$DESTDIR$DESTFILE:  "
-	cd "$DESTDIR"
+    echo_prompt "$DESTDIR$DESTFILE:  "
+    cd "$DESTDIR"
 
-	if [ "$(readlink "$DESTFILE")" != "$TARGET" ]; then
-		rm -rf "$DESTFILE"
-		ln -s "$TARGET" "$DESTFILE"
+    if [ "$(readlink "$DESTFILE")" != "$TARGET" ]; then
+        rm -rf "$DESTFILE"
+        ln -s "$TARGET" "$DESTFILE"
 
-		if [ $? -eq 0 ]; then
-			echo "Set up symbolic link"
-		else
-			echo "Unable to make the symbolic link"
-		fi
-	else
-		echo "Already done"
-	fi
+        if [ $? -eq 0 ]; then
+            echo "Set up symbolic link"
+        else
+            echo "Unable to make the symbolic link"
+        fi
+    else
+        echo "Already done"
+    fi
 }
 
 run_all_scripts "util/helpers/setup.d"

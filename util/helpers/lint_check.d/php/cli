@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	test_for_program php
-else 
-	php $OPTIONS "$1"
+    test_for_program php
+else
+    php $OPTIONS "$1"
 fi

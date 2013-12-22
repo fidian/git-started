@@ -1,21 +1,21 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-	test_for_program php_beautifier
-else 
+    test_for_program php_beautifier
+else
     # php_beautifier can output PHP warnings during execution, which do
     # not affect the actual PHP file result.  Because of this, we must not
     # use success_save here.
     temporary_directory TEMP
     php_beautifier $OPTIONS --input "$FILE" --output "$TEMP/output" > "$TEMP/stdout" 2> "$TEMP/stderr"
     RESULT=$?
-    
+
     if [ $RESULT -ne 0 ]; then
         cat "$TEMP/stderr" >&2
-        cat "$TEMP/stdout" 
+        cat "$TEMP/stdout"
     else
         cat "$TEMP/output" > "$FILE"
     fi
 
-	exit $RESULT
+    exit $RESULT
 fi

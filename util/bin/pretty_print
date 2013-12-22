@@ -19,9 +19,9 @@ temporary_directory OUTPUT_DIR
 resolve_path TARGET_FILE "$STARTING_DIR" "$TARGET_FILE"
 
 if [ ! -z "$REAL_FILE" ]; then
-	resolve_path REAL_FILE "$STARTING_DIR" ${REAL_FILE}
+    resolve_path REAL_FILE "$STARTING_DIR" ${REAL_FILE}
 else
-	REAL_FILE="$TARGET_FILE"
+    REAL_FILE="$TARGET_FILE"
 fi
 
 debug "pretty_print running helpers"
@@ -35,14 +35,14 @@ debug "pretty_print running helpers result $RESULT"
 
 if [ $RESULT -ne 0 ]; then
     # Error trying to pretty print
-	echo_clear_line
-	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty print error:${COLOR_RESET}  ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
-	cat "$OUTPUT_DIR/stderr" >&2
-	cat "$OUTPUT_DIR/stdout"
+    echo_clear_line
+    echo_escape "${COLOR_PRETTY_MESSAGE}Pretty print error:${COLOR_RESET}  ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
+    cat "$OUTPUT_DIR/stderr" >&2
+    cat "$OUTPUT_DIR/stdout"
 fi
 
 if [ ! -s "$TARGET_FILE" ]; then
-	echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printing generated a zero-byte file for${COLOR_RESET} ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
+    echo_escape "${COLOR_PRETTY_MESSAGE}Pretty printing generated a zero-byte file for${COLOR_RESET} ${COLOR_PRETTY_FILENAME}$REAL_FILE${COLOR_RESET}"
     RESULT=1
 fi
 

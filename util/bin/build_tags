@@ -5,23 +5,23 @@
 EXCLUDE=--exclude=.git
 
 for D in IGNORE_DIRS; do
-	EXCLUDE+=" --exclude=$D"
+    EXCLUDE+=" --exclude=$D"
 done
 
 if [ -f tags ]; then
-	echo "Building ctags"
-	ctags -R $EXCLUDE > /dev/null 2>&1
+    echo "Building ctags"
+    ctags -R $EXCLUDE > /dev/null 2>&1
 
-	# Sometimes ctags fatally errors on jQuery plugins
-	if [ $? -ne 0 ]; then
-		echo "Building ctags (sans .js files)"
-		ctags -R $EXCLUDE --exclude=\*.js > /dev/null 2>&1
-	fi
+    # Sometimes ctags fatally errors on jQuery plugins
+    if [ $? -ne 0 ]; then
+        echo "Building ctags (sans .js files)"
+        ctags -R $EXCLUDE --exclude=\*.js > /dev/null 2>&1
+    fi
 fi
 
 if [ -f TAGS ]; then
-	echo "Building etags"
+    echo "Building etags"
 
-	# The etags parser doesn't fatally error on those same jQuery plugins
-	ctags -e -R $EXCLUDE > /dev/null 2>&1
+    # The etags parser doesn't fatally error on those same jQuery plugins
+    ctags -e -R $EXCLUDE > /dev/null 2>&1
 fi

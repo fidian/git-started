@@ -1,29 +1,29 @@
 #!/bin/bash
 
 if [ ! -f composer.json ]; then
-	exit
+    exit
 fi
 
 echo_prompt "composer:  "
 
 if [ ! -d vendor/ ]; then
-	mkdir vendor
+    mkdir vendor
 fi
 
 if [ ! -f vendor/composer.phar ]; then
-	curl -s https://getcomposer.org/installer | php -- --quiet --install-dir=vendor
-	echo "Installed"
+    curl -s https://getcomposer.org/installer | php -- --quiet --install-dir=vendor
+    echo "Installed"
 else
-	echo "Ok"
+    echo "Ok"
 fi
 
 echo_prompt "composer install:  "
 
 php vendor/composer.phar install > /dev/null 2>&1
-	
+    
 if [ $? -ne 0 ]; then
-	echo "Error running 'composer install'"
+    echo "Error running 'composer install'"
 else
-	echo "Ok"
+    echo "Ok"
 fi
 

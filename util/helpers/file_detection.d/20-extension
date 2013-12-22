@@ -4,45 +4,45 @@ file_extension EXT "$1"
 uppercase EXT "$EXT"
 
 case "${EXT}" in
-	CSS)
-		echo "css"
-		;;
+    CSS)
+        echo "css"
+        ;;
 
-	HTM|HTML)
-		echo "html"
-		;;
-		
-	JS)
-		echo "js"
-		;;
+    HTM|HTML)
+        echo "html"
+        ;;
+        
+    JS)
+        echo "js"
+        ;;
 
-	JSON)
-		echo "json"
-		;;
+    JSON)
+        echo "json"
+        ;;
 
-	MD)
-		echo "markdown"
-		;;
+    MD)
+        echo "markdown"
+        ;;
 
-	PHP|INC)
-		echo "php"
-		;;
+    PHP|INC)
+        echo "php"
+        ;;
 
     SASS)
         echo "sass"
         ;;
-	
+    
     SCSS)
         echo "scss"
         ;;
-	
-	YAML|YML)
-		echo "yaml"
-		;;
+    
+    YAML|YML)
+        echo "yaml"
+        ;;
 
-	*)
-		# Exit 0 if we did NOT find anything and need to keep trying
-		exit 0
+    *)
+        # Exit 0 if we did NOT find anything and need to keep trying
+        exit 0
 esac
 
 # Exit 1 - we found something and should stop running detection scripts

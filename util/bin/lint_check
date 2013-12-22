@@ -1,7 +1,7 @@
 #!/bin/bash
 
 function lint_error() {
-	echo_clear_line
+    echo_clear_line
 }
 
 TARGET_FILE=$1
@@ -18,7 +18,7 @@ debug "lint_check running helpers result $RESULT"
 if [ $RESULT -ne 0 ]; then
     # On lint errors, show some colorful messages
     echo_clear_line
-	echo_escape "${COLOR_LINT_ERROR}Lint error:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$TARGET_FILE${COLOR_RESET}"
+    echo_escape "${COLOR_LINT_ERROR}Lint error:${COLOR_RESET}  ${COLOR_LINT_FILENAME}$TARGET_FILE${COLOR_RESET}"
     cat "$OUTPUT"
 fi
 
