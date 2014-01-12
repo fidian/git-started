@@ -649,7 +649,7 @@ PRETTY_CSS="prettycss expand"
 PRETTY_JS="jsbeautify expand"
 PRETTY_JSON="jsbeautify expand"
 PRETTY_MARKDOWN=expand
-PRETTY_PHP="phpbeautifier expand"
+PRETTY_PHP="phpcsfixer phpbeautifier expand"
 PRETTY_SASS="sassconvert expand"
 PRETTY_SCSS="sassconvert expand"
 PRETTY_YAML=expand
@@ -671,6 +671,7 @@ PRETTY_MARKDOWN_EXPAND_OPTIONS="--tabs=4 --initial"
 PRETTY_MARKDOWN_UNEXPAND_OPTIONS="--tabs=4 --first-only"
 
 PRETTY_PHP_EXPAND_OPTIONS="--tabs=4 --initial"
+PRETTY_PHP_PHPCSFIXER_OPTIONS="--fixers=-psr0"  # Renaming the file during pretty printing doesn't work with git-started
 PRETTY_PHP_PHPBEAUTIFIER_OPTIONS=-t
 PRETTY_PHP_UNEXPAND_OPTIONS="--tabs=4 --first-only"
 

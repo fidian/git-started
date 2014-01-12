@@ -71,6 +71,7 @@ Lint checkers:
 Pretty printers:
 
 * phpbeautifier - PEAR's PHP_Beautifier package.  [PEAR](http://pear.php.net/package/PHP_Beautifier)
+* php-cs-fixer - Fabien Potencier's code fixer.  [GitHub](https://github.com/fabpot/PHP-CS-Fixer)
 
 
 SASS - Syntastically Awesome Style Sheets
