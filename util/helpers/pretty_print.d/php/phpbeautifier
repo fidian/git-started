@@ -7,14 +7,14 @@ else
     # not affect the actual PHP file result.  Because of this, we must not
     # use success_save here.
     temporary_directory TEMP
-    php_beautifier $OPTIONS --input "$FILE" --output "$TEMP/output" > "$TEMP/stdout" 2> "$TEMP/stderr"
+    php_beautifier $OPTIONS --input "$1" --output "$TEMP/output" > "$TEMP/stdout" 2> "$TEMP/stderr"
     RESULT=$?
 
     if [ $RESULT -ne 0 ]; then
         cat "$TEMP/stderr" >&2
         cat "$TEMP/stdout"
     else
-        cat "$TEMP/output" > "$FILE"
+        cat "$TEMP/output" > "$1"
     fi
 
     exit $RESULT
