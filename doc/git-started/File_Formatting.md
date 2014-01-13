@@ -23,6 +23,17 @@ Pretty printers:
 * PrettyCSS - A node.js based validator and pretty printer.  [GitHub](https://github.com/fidian/PrettyCSS)
 
 
+HTML - HyperText Markup Language
+--------------------------------
+
+Lint checkers:
+
+* None currently.
+
+Pretty printers:
+
+* tidy - HTML Tidy.  Made for the experimental HTML5 fork of the existing "tidy" HTML tool.  Should also work with original version.  [GitHub-Experimental](https://github.com/w3c/tidy-html5) [SourceForge-Original](http://tidy.sourceforge.net/)
+
 JS - JavaScript
 ---------------
 

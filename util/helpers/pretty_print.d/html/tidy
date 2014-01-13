@@ -1,0 +1,22 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    # "tidy" as a program isn't very unique.  This attempts to use some
+    # extra flags to ensure it's the right beautifier
+    test_for_program tidy && tidy -v -h | grep "HTML Tidy" > /dev/null 2>&1
+else
+    temporary_directory TEMP
+    tidy $OPTIONS -output "$TEMP/output" "$1"
+    RESULT=$?
+
+    # Ignore warnings
+    if [ $RESULT -eq 1 ]; then
+        RESULT=0
+    fi
+
+    if [ $RESULT -eq 0 ]; then
+        cat "$TEMP/output" > "$1"
+    fi
+
+    exit $RESULT
+fi

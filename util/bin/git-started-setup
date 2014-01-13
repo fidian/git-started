@@ -319,7 +319,7 @@ function run_all_scripts() {
 function run_helpers() {
     debug_indent "run_helpers ${1+"$@"}"
     local PREFIX=$1 # Prefix for variable to use for programs
-    local HELPER_DIR=util/helpers.d/$2 # Directory with scripts
+    local HELPER_DIR=util/helpers/$2 # Directory with scripts
     local FILE=$3 # Filename to check or run against
     local CONFIG CONFIGS COMMAND CONFIG_COMMANDS FILE_TYPE MISSING_COMMANDS OPTIONS OPTIONS_VARIABLE RESULT
     get_file_type FILE_TYPE "$FILE"
@@ -646,6 +646,7 @@ LINT_SCSS_SASS_OPTIONS="--check --scss"
 
 # Pretty printers have the same format as the lint checkers
 PRETTY_CSS="prettycss expand"
+PRETTY_HTML="tidy"
 PRETTY_JS="jsbeautify expand"
 PRETTY_JSON="jsbeautify expand"
 PRETTY_MARKDOWN=expand
@@ -658,6 +659,8 @@ PRETTY_YAML=expand
 PRETTY_CSS_EXPAND_OPTIONS="--tabs=4 --initial"
 PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
 PRETTY_CSS_UNEXPAND_OPTIONS="--tabs=4 --first-only"
+
+PRETTY_HTML_TIDY_OPTIONS="-utf8 --drop-empty-elements no --drop-empty-paras no --indent yes --indent-spaces 4 --merge-divs no --merge-emphasis no --merge-spans no --preserve-entities yes --doctype omit --show-body-only yes --wrap 0 --show-info no --show-warnings no"
 
 PRETTY_JS_EXPAND_OPTIONS="--tabs=4 --initial"
 PRETTY_JS_JSBEAUTIFY_OPTIONS="--jslint-happy --brace-style=end-expand"
