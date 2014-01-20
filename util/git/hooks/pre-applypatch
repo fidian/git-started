@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# When executed by git, this script always starts in the top of the
+# repository
+. "$(cd -P "${0%/*}/../.." && pwd)/bin/git-started-setup"
+run_all_scripts util/git/pre-applypatch.d

@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# When executed by git, this script always starts in the top of the
+# repository
+. "$(cd -P "${0%/*}/../.." && pwd)/bin/git-started-setup"
+# $1 = file with commit message
+run_all_scripts util/git/commit-msg.d "$1"

@@ -1,0 +1,9 @@
+#!/bin/bash
+#
+# When executed by git, this script always starts in the top of the
+# repository
+. "$(cd -P "${0%/*}/../.." && pwd)/bin/git-started-setup"
+# $1 = File for commit message
+# $2 = Type of commit
+# $3 = SHA-1 if this is an amended commit
+run_all_scripts util/git/prepare-commit-msg.d "$1" "$2" "$3"
