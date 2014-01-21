@@ -13,7 +13,7 @@ grep -q "N[O]COMMIT" "$FILE"
 
 if [ $? -eq 0 ]; then
     echo_clear_line
-    grep -U3 --color=auto "N[O]COMMIT" "$FILE"
+    grep -n -U3 --color=auto "N[O]COMMIT" "$FILE"
     echo ""
     echo "Found NO""COMMIT in file: $FILE"
     exit 1

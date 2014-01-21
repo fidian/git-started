@@ -11,7 +11,7 @@ grep -q '^\(=======\|<<<<<<<\|>>>>>>>\)$' "$FILE"
 
 if [ $? -eq 0 ]; then
     echo_clear_line
-    grep -U3 --color=auto '^\(=======\|<<<<<<<\|>>>>>>>\)$' "$FILE"
+    grep -n -U3 --color=auto '^\(=======\|<<<<<<<\|>>>>>>>\)$' "$FILE"
     echo ""
     echo "Found conflict markup in file: $FILE"
     exit 1
