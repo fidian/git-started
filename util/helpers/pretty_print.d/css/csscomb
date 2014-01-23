@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    test_for_program csscomb
+else
+    csscomb $OPTIONS "$1"
+fi

@@ -20,6 +20,7 @@ Lint checkers:
 
 Pretty printers:
 
+# CSSComb - Sorts CSS properties in a specific order.  [Site](http://csscomb.com/)
 * PrettyCSS - A node.js based validator and pretty printer.  [GitHub](https://github.com/fidian/PrettyCSS)
 
 

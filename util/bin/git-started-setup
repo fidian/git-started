@@ -645,7 +645,7 @@ LINT_SASS_SASS_OPTIONS=--check
 LINT_SCSS_SASS_OPTIONS="--check --scss"
 
 # Pretty printers have the same format as the lint checkers
-PRETTY_CSS="prettycss expand"
+PRETTY_CSS="prettycss csscomb expand"
 PRETTY_HTML="tidy"
 PRETTY_JS="jsbeautify expand"
 PRETTY_JSON="jsbeautify expand"
@@ -656,6 +656,7 @@ PRETTY_SCSS="sassconvert expand"
 PRETTY_YAML=expand
 
 # Pretty printing command-line options
+PRETTY_CSS_CSSCOMB_OPTIONS=
 PRETTY_CSS_EXPAND_OPTIONS="--tabs=4 --initial"
 PRETTY_CSS_PRETTYCSS_OPTIONS="-s --ignore autocorrect --ignore autocorrect-swap --ignore suggest-relative-unit --ignore unofficial"
 PRETTY_CSS_UNEXPAND_OPTIONS="--tabs=4 --first-only"
