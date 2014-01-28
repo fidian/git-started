@@ -124,6 +124,18 @@ Pretty Printers:
 * sass - Ruby SASS implementation [GitHub](https://github.com/nex3/sass)
 
 
+Shell
+-----
+
+Lint checkers:
+
+* bash - Ensure bash shell scripts seem valid.  See [issue #8](https://github.com/fidian/git-started/issues/8).
+
+Pretty Printers:
+
+* None currently.
+
+
 Writing Your Own
 ================
 

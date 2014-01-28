@@ -1,0 +1,16 @@
+#!/bin/bash
+
+file "$1" | grep text > /dev/null
+
+if [ $? -ne 0 ]; then
+    # Only work on text files
+    exit 1
+fi
+
+head -n 1 "$1" | grep '^#!' > /dev/null
+
+if [ $? -ne 0 ]; then
+    exit 1
+fi
+
+echo "shell"

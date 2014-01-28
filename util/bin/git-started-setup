@@ -150,6 +150,8 @@ function get_interpreter() {
 
     # Remove path
     INTERPRETER=${INTERPRETER##*/}
+
+    debug "get_interpreter result '$INTERPRETER'"
     local "$1" && indirect $1 "$INTERPRETER"
     return 0
 }
@@ -650,6 +652,7 @@ LINT_MARKDOWN=
 LINT_PHP=cli
 LINT_SASS=sass
 LINT_SCSS=sass
+LINT_SHELL=bash
 LINT_YAML=
 
 # Lint command-line options for various language/program pairs

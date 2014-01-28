@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    # We don't need to test - this repo must use bash
+    exit 0
+fi
+
+get_interpreter INTERPRETER "$1"
+
+if [ "$INTERPRETER" != "bash" ]; then
+    exit 0
+fi
+
+set -e
+bash -n "$1"
+set +e

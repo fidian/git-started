@@ -35,6 +35,10 @@ case "${EXT}" in
     SCSS)
         echo "scss"
         ;;
+
+    SH|BASH|CSH|TCSH)
+        echo "shell"
+        ;;
     
     YAML|YML)
         echo "yaml"
