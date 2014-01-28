@@ -11,6 +11,20 @@ Supported Commands
 The lint checkers and pretty printer scripts require external tools to be installed and will silently take no action if the tool is not installed.  Check with the individual file types below to see what options are available.  Thus, if you want the pretty printing or the lint checking to work automatically, you will need to install at least one tool to do it.
 
 
+Common - Available for all file types
+-------------------------------------
+
+Lint checkers:
+
+* None currently.
+
+Pretty printers:
+
+* expand - Change tabs to spaces.
+* fail - Fail pretty printing if you get this far.
+* lint - Lint check.  See [issue #2](https://github.com/fidian/git-started/issues/2).
+* unexpand - Change spaces to tabs.
+
 CSS - Cascading Style Sheets
 ----------------------------
 

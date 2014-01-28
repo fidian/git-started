@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    exit 0
+else
+    "${TOOL_DIR}/bin/lint_check" "$FILE"
+    RESULT=$?
+
+    if [ $RESULT -ne 0 ]; then
+        echo "Error found while linting after the pretty printer was applied."
+    fi
+
+    exit $RESULT
+fi

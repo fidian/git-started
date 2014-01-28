@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    # Always pass saying we can run this pretty printer
+    exit 0
+else
+    # Always fail indicating that we shouldn't have gotten this far
+    echo "Pretty printing has failed.  Are you missing a required pretty printer?"
+    echo "This is an intentional failure.  Double check your configuration."
+    exit 1
+fi
