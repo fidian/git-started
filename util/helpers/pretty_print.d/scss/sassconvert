@@ -1,7 +1,1 @@
-#!/bin/bash
-
-if [ -z "$1" ]; then
-    test_for_program sass-convert
-else
-    success_save "$1" sass-convert $OPTIONS "$1"
-fi
+../_shared/sassconvert
