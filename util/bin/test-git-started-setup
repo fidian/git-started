@@ -111,6 +111,34 @@ done
 
 
 #
+# get_interpreter
+#
+temporary_directory TEMP_DIR
+while read LINE; do
+    INPUT=${LINE##*:}
+    EXPECTED=${LINE%:*}
+    echo "$INPUT" > "${TEMP_DIR}/test.txt"
+    TEST "get_interpreter \"$INPUT\""
+    get_interpreter ACTUAL "${TEMP_DIR}/test.txt"
+    
+    if [ "$ACTUAL" == "$EXPECTED" ]; then
+        PASS
+    else
+        FAIL "got \"$ACTUAL\""
+    fi
+done < <( cat <<EOF
+bash:#!/bin/bash
+bash:#! /bin/bash
+bash:#!/bin/bash -args
+bash:#! /bin/bash -args
+bash:#!  /bin/bash	-tabs	-here -and -spaces 'too'
+bash:#!/usr/bin/env bash  one two
+bash:#! /usr/bin/env    bash
+EOF
+)
+
+
+#
 # is_submodule
 #
 

@@ -132,6 +132,28 @@ function get_file_type() {
     return 0
 }
 
+
+# Get the interpreter for a file that starts with a "shebang".
+#
+# Parameters: VariableNameToAssign FileNameToScan
+function get_interpreter() {
+    debug_indent "get_interpreter '$2'"
+    local LINE INTERPRETER ARG1 OTHERARGS
+
+    # This takes care of whitespace and separating arguments
+    LINE=$( head -n 1 "$2" )
+    read INTERPRETER ARG1 OTHERARGS< <( echo "${LINE:2}" )
+    debug "get_interpreter '$INTERPRETER' '$ARG1'"
+    if [ "$INTERPRETER" == "/usr/bin/env" ]; then
+        INTERPRETER=$ARG1
+    fi
+
+    # Remove path
+    INTERPRETER=${INTERPRETER##*/}
+    local "$1" && indirect $1 "$INTERPRETER"
+    return 0
+}
+
 # Assign data to a variable that's in a parent scope.
 # See http://tldp.org/LDP/abs/html/ivr.html for lots of info.
 # Based on "upvar" from bash-completion package and
