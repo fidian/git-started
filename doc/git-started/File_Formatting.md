@@ -24,6 +24,7 @@ Pretty printers:
 * fail - Fail pretty printing if you get this far.  See [issue #16](https://github.com/fidian/git-started/issues/16)
 * lint - Lint check.  See [issue #2](https://github.com/fidian/git-started/issues/2).
 * unexpand - Change spaces to tabs.
+* wsend - Remove spaces and tabs from the end of lines.  See [issue #7](https://github.com/fidian/git-started/issues/7).
 
 CSS - Cascading Style Sheets
 ----------------------------

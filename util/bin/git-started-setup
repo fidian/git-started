@@ -670,15 +670,17 @@ LINT_SASS_SASS_OPTIONS=--check
 LINT_SCSS_SASS_OPTIONS="--check --scss"
 
 # Pretty printers have the same format as the lint checkers
-PRETTY_CSS="prettycss csscomb expand"
-PRETTY_HTML="tidy"
-PRETTY_JS="jsbeautify expand"
-PRETTY_JSON="jsbeautify expand"
-PRETTY_MARKDOWN=expand
-PRETTY_PHP="phpcsfixer phpbeautifier expand"
-PRETTY_SASS="sassconvert expand"
-PRETTY_SCSS="sassconvert expand"
-PRETTY_YAML=expand
+# wsend = remove whitespace at the end of lines
+PRETTY_CSS="prettycss+wsend csscomb+wsend expand+wsend wsend"
+PRETTY_HTML="tidy+wsend wsend"
+PRETTY_JS="jsbeautify+wsend expand+wsend wsend"
+PRETTY_JSON="jsbeautify+wsend expand+wsend wsend"
+PRETTY_MARKDOWN="expand+wsend wsend"
+PRETTY_PHP="phpcsfixer+wsend phpbeautifier+wsend expand+wsend wsend"
+PRETTY_SASS="sassconvert+wsend expand+wsend wsend"
+PRETTY_SCSS="sassconvert+wsend expand+wsend wsend"
+PRETTY_SHELL=wsend  # Do not use expand/unexpand
+PRETTY_YAML="expand+wsend wsend"
 
 # Pretty printing command-line options
 PRETTY_CSS_CSSCOMB_OPTIONS=

@@ -120,7 +120,7 @@ while read LINE; do
     echo "$INPUT" > "${TEMP_DIR}/test.txt"
     TEST "get_interpreter \"$INPUT\""
     get_interpreter ACTUAL "${TEMP_DIR}/test.txt"
-    
+
     if [ "$ACTUAL" == "$EXPECTED" ]; then
         PASS
     else
@@ -255,6 +255,19 @@ TEST "run_helpers"
 # If no target, check that the original is used
 # CHeck that extra arguments are all passed to the script
 FAIL "no tests exist"
+
+
+#
+# sed
+#
+TEST "sed strip whitespace"
+EXPECTED=$( echo -e "\t \t blah" )
+ACTUAL=$( echo -e "\t \t blah\t \t " | sed 's/[ 	]*$//' )
+if [ "$ACTUAL" == "$EXPECTED" ]; then
+    PASS
+else
+    FAIL "got \"$ACTUAL\""
+fi
 
 
 #

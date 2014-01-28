@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    test_for_program sed
+else
+    # Space and tab literal
+    # Can't use sed -i - Linux: `sed -i "s/..."`, Mac: "sed -i '' 's/..."`
+    success_save "$1" sed 's/[ 	]*$//' "$1"
+fi
