@@ -1,5 +1,1 @@
-#!/bin/bash
-
-if [ -f tags ] || [ -f TAGS ]; then
-    "${TOOL_DIR}/bin/build_tags"
-fi
+../shared/85-tags

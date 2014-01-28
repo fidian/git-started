@@ -1,5 +1,1 @@
-#!/bin/bash
-
-if [ -f composer.json ]; then
-    php vendor/composer.phar install -n
-fi
+../shared/80-composer
