@@ -21,7 +21,7 @@ Lint checkers:
 Pretty printers:
 
 * expand - Change tabs to spaces.
-* fail - Fail pretty printing if you get this far.
+* fail - Fail pretty printing if you get this far.  See [issue #16](https://github.com/fidian/git-started/issues/16)
 * lint - Lint check.  See [issue #2](https://github.com/fidian/git-started/issues/2).
 * unexpand - Change spaces to tabs.
 
