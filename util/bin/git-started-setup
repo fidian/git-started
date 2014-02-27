@@ -138,11 +138,16 @@ function get_file_type() {
 # Parameters: VariableNameToAssign FileNameToScan
 function get_interpreter() {
     debug_indent "get_interpreter '$2'"
-    local LINE INTERPRETER ARG1 OTHERARGS
+    local LINE INTERPRETER ARG1 OTHERARGS OUTPUT
 
     # This takes care of whitespace and separating arguments
     LINE=$( head -n 1 "$2" )
-    read INTERPRETER ARG1 OTHERARGS< <( echo "${LINE:2}" )
+
+    # Cygwin does not let the following line work
+    # read INTERPRETER ARG1 OTHERARGS< <( echo "${LINE:2}" )
+    # But this alternate version seems to work fine
+    INTERPRETER="$(set -- ${LINE:2}; echo $1)"
+    ARG1="$(set -- ${LINE:2}; echo $2)"
     debug "get_interpreter '$INTERPRETER' '$ARG1'"
     if [ "$INTERPRETER" == "/usr/bin/env" ]; then
         INTERPRETER=$ARG1
@@ -178,7 +183,7 @@ function indirect() {
 # Returns a positive result (exit code 0) if we are currently in a
 # git submodule.  Based off https://gist.github.com/sehe/1208393
 function is_submodule() {
-    local CHILD_DIR PARENT_DIR MODULE_PATH FULL_MODULE_PATH
+    local CHILD_DIR PARENT_DIR MODULE_PATH FULL_MODULE_PATH OUTPUT
 
     if [ ! -z "$CACHED_IS_SUBMODULE" ]; then
         debug "is_submodule cached $CACHED_IS_SUBMODULE"
@@ -206,6 +211,7 @@ function is_submodule() {
     fi
 
     # List all submodules in parent.  Careful with the subshells
+    OUTPUT="$(cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null)"
     while read MODULE_PATH; do
         # Get the full path to the module
         # Need to do the "cd" twice to get the right path when using odd symlinks
@@ -220,7 +226,7 @@ function is_submodule() {
             debug_outdent "is_submodule 0 = submodule matches"
             return 0 # Affirmative
         fi
-    done < <( cd "$PARENT_DIR"; git submodule --quiet foreach 'echo $path' 2> /dev/null )
+    done <<< "$OUTPUT"
 
     CACHED_IS_SUBMODULE=1
     debug_outdent "is_submodule 1 = no matching submodule"
@@ -293,7 +299,7 @@ function resolve_path() {
 # Exit on error
 # Parameters:  DirectoryOfScripts ArgsToPassToScripts
 function run_all_scripts() {
-    local RESULT SCRIPT
+    local RESULT SCRIPT OUTPUT
     local DIR=$1
     shift
 
@@ -305,6 +311,7 @@ function run_all_scripts() {
         return 0
     fi
 
+    OUTPUT="$(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)"
     while read FN; do
         if get_executable SCRIPT "$DIR/$FN"; then
             debug "run_all_scripts executable is '$SCRIPT'"
@@ -324,7 +331,7 @@ function run_all_scripts() {
                 return $RESULT
             fi
         fi
-    done < <(find "./$SUBMODULE_PATH/$DIR" "$DIR" local/"$DIR" -maxdepth 1 -not -name .\* -type f -or -type l 2>/dev/null | sed "s/.*\\///" | sort | uniq)
+    done <<< "$OUTPUT"
 
     debug_outdent "run_all_scripts all passed"
     return 0

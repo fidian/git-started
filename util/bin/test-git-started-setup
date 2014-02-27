@@ -114,6 +114,13 @@ done
 # get_interpreter
 #
 temporary_directory TEMP_DIR
+OUTPUT="bash:#!/bin/bash
+bash:#! /bin/bash
+bash:#!/bin/bash -args
+bash:#! /bin/bash -args
+bash:#!  /bin/bash	-tabs	-here -and -spaces 'too'
+bash:#!/usr/bin/env bash  one two
+bash:#! /usr/bin/env    bash";
 while read LINE; do
     INPUT=${LINE##*:}
     EXPECTED=${LINE%:*}
@@ -124,18 +131,9 @@ while read LINE; do
     if [ "$ACTUAL" == "$EXPECTED" ]; then
         PASS
     else
-        FAIL "got \"$ACTUAL\""
+        FAIL "got \"$ACTUAL\" not \"$EXPECTED\""
     fi
-done < <( cat <<EOF
-bash:#!/bin/bash
-bash:#! /bin/bash
-bash:#!/bin/bash -args
-bash:#! /bin/bash -args
-bash:#!  /bin/bash	-tabs	-here -and -spaces 'too'
-bash:#!/usr/bin/env bash  one two
-bash:#! /usr/bin/env    bash
-EOF
-)
+done <<< "$OUTPUT"
 
 
 #

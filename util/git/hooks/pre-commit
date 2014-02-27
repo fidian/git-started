@@ -17,6 +17,7 @@ fi
 # Iterate over each file that is being committed
 ERROR_COUNT=0
 RESULT=0
+OUTPUT="$(git diff-index --name-only --cached $AGAINST)"
 
 while read FILE; do
     # Show we are doing something to a file
@@ -47,7 +48,7 @@ while read FILE; do
 
     # Clear away the current file
     echo_clear_line
-done < <(git diff-index --name-only --cached $AGAINST)
+done <<< "$OUTPUT"
 
 if [ $ERROR_COUNT -ne 0 ]; then
     echo ""
