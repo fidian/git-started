@@ -2,7 +2,7 @@
 
 if [ -z "$1" ]; then
 	test_for_program php-cs-fixer
-else 
+else
 	php-cs-fixer fix $OPTIONS "$FILE" > /dev/null 2>&1
 	# We are explicitly returning 0 here, because php-cs-fixer returns 1 on success AND 1 on failure.
 	exit 0
