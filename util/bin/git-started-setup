@@ -398,7 +398,7 @@ function run_helper_script() {
     shift # Remove CommandSet
 
     # Change command1+command2 into space separated list
-    for COMMAND in ${COMMAND_SET//+/ /}; do
+    for COMMAND in ${COMMAND_SET//+/ }; do
         debug "run_helper_script command '$COMMAND'"
 
         # Automatically fall back to the _common directory
