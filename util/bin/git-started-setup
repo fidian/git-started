@@ -599,6 +599,7 @@ if [ "${BASH_SOURCE%/*}" != "$BASH_SOURCE" ]; then
 fi
 
 # Remove any possibility of the environment messing up the rev-parse
+unset CDPATH
 unset GIT_DIR
 cd "$(git rev-parse --show-toplevel)"
 SUBMODULE_PATH=
