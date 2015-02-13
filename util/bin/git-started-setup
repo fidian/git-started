@@ -438,7 +438,7 @@ function run_helper_script() {
 function stat_file() {
     local FN=$1
     git hash-object "$FN" | tr -d "\n"
-    /usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || stat -f " %p %u:%g %z" "$FN"
+    /usr/bin/stat --format=" %f%a %u:%g %s" "$FN" 2>/dev/null || /usr/bin/stat -f " %p %u:%g %z" "$FN"
 }
 
 # On successful termination of a command, send its "stdout" to a specific
